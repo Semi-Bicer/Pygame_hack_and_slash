@@ -1,0 +1,23 @@
+# PyCharm files
+.idea/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Asset directories you want to ignore
+pygame_hack&slash/assets/(DEMO) Lords Of Pain - Old School Isometric Assets/
+pygame_hack&slash/assets/Free-Undead-Tileset-Top-Down-Pixel-Art/
+pygame_hack&slash/assets/Knight/License.txt
+pygame_hack&slash/assets/Knight/preview.gif
+pygame_hack&slash/assets/Pixel Art Top Down - Basic v1.1.2/
+pygame_hack&slash/assets/PixelArtForest/Contact.txt
+pygame_hack&slash/assets/PixelArtForest/changelog.txt
+pygame_hack&slash/assets/PixelArtForest/license.txt
+pygame_hack&slash/assets/SuperGrottoEscapeGodotProject/
+pygame_hack&slash/assets/__MACOSX/
+pygame_hack&slash/assets/thanks.txt
+
+# macOS system files
+.DS_Store
