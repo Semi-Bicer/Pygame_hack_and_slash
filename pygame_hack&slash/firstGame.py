@@ -1,6 +1,7 @@
 import pygame
 import os
-
+from character import Player, enemyFly
+import constants
 
 pygame.init()
 
@@ -11,23 +12,9 @@ win = pygame.display.set_mode((screenWidth, screenHeight))
 
 pygame.display.set_caption("First")
 
-# player variables
-x = 200
-y = 150
-width = 10 
-height = 10
-vel = 20
-dashVel = 40
-health = 100
-maxHealth = 100
-## rotation of the player
-left = False
-right = False
-leftIdle = False
-rightIdle = False
-walkCount = 0
-idleCount = 0
-
+#######
+# Define necessary functions
+#######
 game_active = False
 
 font = pygame.font.SysFont("comicsans", 30)
@@ -39,72 +26,81 @@ def draw_start_button():
     win.blit(text, (btn_rect.x + 50, btn_rect.y + 4))
     return btn_rect
 
-def draw_health_bar(surface, x ,y,health, maxHealth ):
-    barWidth = 100
-    barHeight = 10
-    fill = (health / maxHealth) * barWidth
-    border_rect = pygame.Rect(x, y -20, barWidth, barHeight)
-    fill_rect = pygame.Rect(x, y -20, fill, barHeight)
-    pygame.draw.rect(surface, (255, 0, 0), fill_rect)
-    pygame.draw.rect(surface, (255, 255, 255), border_rect, 2)
+# draw_health_bar is now imported from character.py
 
 
-def load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites):
-    sheet = pygame.image.load(sheet_path)
-    frames = []
-    for i in range(num_sprites):
-        frame = sheet.subsurface((i * sprite_width, 0, sprite_width, sprite_height))
-        frames.append(frame)
-    return frames
+# Load background image
+bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
 
-# laod animation frames
-walkRight = load_sprite_sheet(os.path.join("assets","Knight","Sprites","without_outline", "WALK.png"), 96, 80, 8) # load the sprite sheet and get the frames
-walkLeft = [pygame.transform.flip(frame, True, False) for frame in walkRight] # flip the image to make it look like left
-charIdle = load_sprite_sheet(os.path.join("assets","Knight","Sprites","without_outline", "IDLE.png"), 96, 80, 7) 
-flipCharIdle = [pygame.transform.flip(frame, True, False) for frame in charIdle] # bunu ekleme sebebimiz normal idle animasyonunda karakter sağa bakıyor ama solda bakması lazım o yüzden bunu ekledik
-bg = pygame.image.load(os.path.join("assets", "PixelArtForest", "Preview", "Background.png"))
-
-isDashing = False
-dashMultiplier = 10
 
 def redrawGameWindow():
-    global walkCount
-    global idleCount
     #win.fill((0,0,0)) # this will fill the screen with black color
     win.blit(bg, (0, 0))
-    # draw the player
-    if walkCount + 1 >= len(walkRight):
-        walkCount = 0
-    if idleCount + 1 >= len(charIdle):
-        idleCount = 0
-    if left:
-        win.blit(walkLeft[walkCount], (x, y))
-        walkCount = (walkCount + 1) % len(walkLeft)
-    elif right:
-        win.blit(walkRight[walkCount], (x, y))
-        walkCount = (walkCount + 1) % len(walkRight)
-    else:
-        if leftIdle:
-            win.blit(flipCharIdle[idleCount], (x, y))
-            idleCount = (idleCount + 1) % len(flipCharIdle)
+
+    # Draw the player character
+    Character.draw(win, font)
+
+    # Bullets
+    for bullet in bullets:
+        # Move the bullet based on its facing direction
+        bullet.x += (bullet.vel * bullet.facing)
+
+        # Remove bullets that go off-screen
+        if bullet.x > screenWidth or bullet.x < 0:
+            bullets.pop(bullets.index(bullet))
         else:
-            win.blit(charIdle[idleCount], (x, y))
-            idleCount = (idleCount + 1) % len(charIdle)
+            bullet.draw(win)
 
-
-    draw_health_bar(win, x, y, health, maxHealth)
-
-    if health <= 0:
-        gameOverText = font.render("GAME OVER", True, (255, 255, 255))
-        win.blit(gameOverText, ((screenWidth // 2 -gameOverText.get_width() // 2) , 300))
-
-    
     pygame.display.update()
 
-#main loop
-run = True 
+
+###
+# Projectile class
+###
+class Projectile(object):
+    def __init__(self, x, y, width, height, facing, vel):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = vel
+        self.facing = facing  # 1 for right, -1 for left
+        self.frameCount = 0
+        self.sprites = enemyFly
+
+    def draw(self, win):
+        # Animate the projectile using the enemyFly sprites
+        if self.frameCount >= len(self.sprites):
+            self.frameCount = 0
+
+
+        current_sprite = self.sprites[self.frameCount]
+
+        # If facing left, flip the sprite
+        if self.facing == 1:
+            current_sprite = pygame.transform.flip(current_sprite, True, False)
+
+        win.blit(current_sprite, (self.x, self.y))
+
+        # Update the frame count for animation
+        self.frameCount = (self.frameCount + 1) % len(self.sprites)
+
+
+#create clock for maintaning frame rate
+clock = pygame.time.Clock()
+
+
+
+#####################################################################################
+# this is the main loop of the game
+#####################################################################################
+Character = Player(screenWidth//2, screenHeight//2, 64, 64, screenWidth, screenHeight)
+bullets = []
+run = True
 while run:
-    pygame.time.delay(100)
+    #control frame rate
+    clock.tick(constants.FPS)
+
     # events means keyboard click or mouse movements or even keyboard movements
     for event in pygame.event.get():
         if event.type ==  pygame.QUIT:
@@ -113,6 +109,7 @@ while run:
             mousePos = pygame.mouse.get_pos()
             if draw_start_button().collidepoint(mousePos):
                 game_active = True
+        
 
     if not game_active:
         win.fill((0, 0, 0))
@@ -120,61 +117,42 @@ while run:
         pygame.display.update()
         continue
 
+    # Game over text is now handled in Character.draw()
+
 
 
     keys = pygame.key.get_pressed()
+    Character.move(keys)
+
+    # Shoot projectiles (limited to 5 at a time)
+    if keys[pygame.K_v] and len(bullets) < 5:
+        # Determine facing direction based on player state
+        facing = -1 if Character.leftIdle or Character.left else 1
+
+        # Get sprite dimensions (using the first enemyFly sprite)
+        sprite_width = enemyFly[0].get_width()
+        sprite_height = enemyFly[0].get_height()
+
+        # Create a new projectile at front of the player
+        # remember player location is on the top left of sprite sheet
+        if facing == 1:
+            bullet_x = Character.x + Character.width
+        else:
+            bullet_x = Character.x - sprite_width
+
+        bullet_y = Character.y + Character.height // 2 - sprite_height // 2
+
+        bullets.append(Projectile(bullet_x, bullet_y, sprite_width, sprite_height, facing, 10))
+
     
-    if keys[pygame.K_a] and x > vel: # left
-        x -= vel
-        left = True
-        right = False
-    elif keys[pygame.K_d] and x < (screenWidth - width -vel) : # right
-        x += vel
-        right = True
-        left = False
-    else:
-        if left == True:
-            leftIdle = True
-            rightIdle = False
-        if right == True:
-            rightIdle = True
-            leftIdle = False
-        left = False
-        right = False
-        walkCount = 0
-    #else:
-        # start the idle animation
 
-    if keys[pygame.K_w] and y > vel: # up
-        y -= vel 
-    if keys[pygame.K_s] and y < (screenHeight - height -vel): # down
-        y += vel
-    if keys[pygame.K_LSHIFT]: # our game will be top-down so no need for restriction during dash
-        isDashing = True
-        print("dashed")
-        left = False
-        right = False
-        walkCount = 0
-
-
-    if (isDashing):
-        if keys[pygame.K_a]:
-            x -= dashVel
-        if keys[pygame.K_d]:
-            x += dashVel
-        if keys[pygame.K_w]:
-            y -= dashVel
-        if keys[pygame.K_s]:
-            y += dashVel
-        isDashing = False
-
-    if keys[pygame.K_SPACE] and health > 0:
-            health -= 10
-            pygame.time.delay(100)
+    # Add a small delay when taking damage with space key
+    if keys[pygame.K_SPACE] and Character.health > 0:
+        pygame.time.delay(100)
 
 
 
     redrawGameWindow()
 
-    
+
 pygame.quit()
