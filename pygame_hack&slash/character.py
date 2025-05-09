@@ -1,43 +1,10 @@
 import pygame
 import os
 import math
+import constants
 
 
-# Sprite loading functions
-def load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites):
-    sheet = pygame.image.load(sheet_path)
-    frames = []
-    for i in range(num_sprites):
-        frame = sheet.subsurface((i * sprite_width, 0, sprite_width, sprite_height))
-        frames.append(frame)
-    return frames
 
-def load_individual_sprites(directory_path):
-    frames = []
-
-    try:
-        # Get all files in the directory
-        files = os.listdir(directory_path)
-        # Filter for PNG files and sort them
-        png_files = sorted([f for f in files if f.lower().endswith('.png')])
-
-        for file_name in png_files:
-            file_path = os.path.join(directory_path, file_name)
-            frame = pygame.image.load(file_path)
-            frames.append(frame)
-    except Exception as e:
-        print(f"Error loading sprites from {directory_path}: {e}")
-
-    return frames
-
-# Load animation frames
-walkRight = load_sprite_sheet(os.path.join("pygame_hack&slash" ,"assets","Knight","Sprites","without_outline", "WALK.png"), 96, 80, 8)
-walkLeft = [pygame.transform.flip(frame, True, False) for frame in walkRight]
-charIdle = load_sprite_sheet(os.path.join("pygame_hack&slash","assets","Knight","Sprites","without_outline", "IDLE.png"), 96, 80, 7)
-flipCharIdle = [pygame.transform.flip(frame, True, False) for frame in charIdle]
-
-# Load enemy sprites
-enemyFly = load_individual_sprites(os.path.join("pygame_hack&slash","assets", "Knight", "Sprites", "EnemyFly"))
 
 def draw_health_bar(surface, x, y, health, maxHealth):
     barWidth = 100
@@ -50,37 +17,53 @@ def draw_health_bar(surface, x, y, health, maxHealth):
 
 
 class Player(object):
-    def __init__(self, x, y, width, height, screenWidth, screenHeight):
+    def __init__(self, x, y, width, height, screenWidth, screenHeight, mob_animations, char_type):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
+        self.rect = pygame.Rect(x, y, width, height)
+        self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
         self.vel = 5
         self.dashVel = 15.0
         self.health = 100
         self.maxHealth = 100
         self.isDashing = False
         self.dashMultiplier = 10
+        # Animation
         # rotation of the player
+        self.char_type = char_type
+        self.animation_list = mob_animations[char_type] # walkLeft, walkRight, charIdle, flipCharIdle
+        # to know how much time passed since last time udpated frame
+        self.last_update = pygame.time.get_ticks()
+        self.flip = False
+        self.frame_index = 0
+        self.action = 0 #0 idle , 1 run
+        self.walking = False
+        self.image = self.animation_list[self.action][self.frame_index] # charIdle
         self.left = False
         self.right = False
         self.up = False
         self.down = False
         self.leftIdle = False
-        self.rightIdle = False
         self.walkCount = 0
         self.idleCount = 0
+        
         self.screenWidth = screenWidth
         self.screenHeight = screenHeight
         self.horizontal = 0
         self.vertical = 0
 
     def move(self, keys):
+        self.walking = False
         # horizontal boolean
         self.horizontal = int (keys[pygame.K_d]) - int (keys[pygame.K_a])
         #vertical boolean
         self.vertical = int(keys[pygame.K_s]) - int(keys[pygame.K_w])
-        if abs(self.horizontal) and abs(self.vertical):
+
+        if abs(self.horizontal) or abs(self.vertical): # if moving
+            self.walking = True
+        if abs(self.horizontal) and abs(self.vertical): # if moving diagonally
             self.x += self.horizontal * self.vel/math.sqrt(2)
             self.y += self.vertical * self.vel /math.sqrt(2)
         else:
@@ -91,17 +74,21 @@ class Player(object):
         if keys[pygame.K_a] and self.x > self.vel:  # left
             self.left = True
             self.leftIdle = True
+            self.flip = True
 
         elif keys[pygame.K_d] and self.x < (self.screenWidth - self.width - self.vel):  # right
             self.left = False
             self.leftIdle = False
+            self.flip = False
         else:  # start the idle animation
             if self.left:
                 self.leftIdle = True
                 self.rightIdle = False
+                self.flip = True
             else:
                 self.rightIdle = True
                 self.leftIdle = False
+                self.flip = False
             
             self.walkCount = 0
 
@@ -140,29 +127,57 @@ class Player(object):
         if keys[pygame.K_SPACE] and self.health > 0:
             self.health -= 10
             
-
-    def draw(self, win, font):
-        # draw the player
-        if self.walkCount + 1 >= len(walkRight):
-            self.walkCount = 0
-        if self.idleCount + 1 >= len(charIdle):
-            self.idleCount = 0
+        
+        
+    def update(self):
+        self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
+        # checking action
+        if self.walking:
+            self.update_action(1)
+        else:
+            self.update_action(0)
+        # animation delay
+        animation_cooldown = 100
+        # update player
+        if self.frame_index + 1 >= len(self.animation_list[1]):
+            self.frame_index = 0
         if abs(self.horizontal) or abs(self.vertical):
-            if self.left:
-                win.blit(walkLeft[self.walkCount], (self.x, self.y))
-                self.walkCount = (self.walkCount + 1) % len(walkLeft)
+            if self.left:                
+                self.image = self.animation_list[1][self.frame_index] 
+                if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                    self.last_update = pygame.time.get_ticks()
+                    self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
             else:
-                win.blit(walkRight[self.walkCount], (self.x, self.y))
-                self.walkCount = (self.walkCount + 1) % len(walkRight)
+                self.image = self.animation_list[1][self.frame_index]
+                if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                    self.last_update = pygame.time.get_ticks()
+                    self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
         else:
             
             if self.leftIdle:
-                win.blit(flipCharIdle[self.idleCount], (self.x, self.y))
-                self.idleCount = (self.idleCount + 1) % len(flipCharIdle)
+                self.image = self.animation_list[0][self.frame_index]
+                if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                    self.last_update = pygame.time.get_ticks()
+                    self.frame_index = (self.frame_index + 1) % len(self.animation_list[0])
             else:
-                win.blit(charIdle[self.idleCount], (self.x, self.y))
-                self.idleCount = (self.idleCount + 1) % len(charIdle)
+                self.image = self.animation_list[0][self.frame_index]
+                if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                    self.last_update = pygame.time.get_ticks()
+                    self.frame_index = (self.frame_index + 1) % len(self.animation_list[0])
 
+    def update_action(self,new_action):
+        if new_action != self.action:
+            self.action = new_action
+            self.frame_index = 0
+            self.last_update = pygame.time.get_ticks()
+
+    def draw(self, win, font):
+        pygame.draw.rect(win, constants.RED, self.rect, 1)
+        flipped_image = pygame.transform.flip(self.image, self.flip, False)
+        if(self.char_type == 0):
+            win.blit(flipped_image, (self.rect.x - constants.scale *constants.OFFSET_X, self.rect.y - constants.scale *constants.OFFSET_Y))
+        else:
+            win.blit(flipped_image, self.rect)
         # health bar
         draw_health_bar(win, self.x, self.y, self.health, self.maxHealth)
 
@@ -170,3 +185,5 @@ class Player(object):
         if self.health <= 0:
             gameOverText = font.render("GAME OVER", True, (255, 255, 255))
             win.blit(gameOverText, ((self.screenWidth // 2 - gameOverText.get_width() // 2), 300))
+
+    
