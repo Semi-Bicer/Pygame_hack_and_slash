@@ -15,7 +15,6 @@ def draw_health_bar(surface, x, y, health, maxHealth):
     pygame.draw.rect(surface, (255, 0, 0), fill_rect)
     pygame.draw.rect(surface, (255, 255, 255), border_rect, 2)
 
-
 class Player(object):
     def __init__(self, x, y, width, height, screenWidth, screenHeight, mob_animations, char_type):
         self.x = x
@@ -105,7 +104,7 @@ class Player(object):
             self.down = False
 
         # Dash movement
-        if keys[pygame.K_LSHIFT]: 
+        if keys[pygame.K_LSHIFT]:
             self.isDashing = True
             self.left = False
             self.walkCount = 0
@@ -153,7 +152,7 @@ class Player(object):
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
         else:
-            
+
             if self.leftIdle:
                 self.image = self.animation_list[0][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
