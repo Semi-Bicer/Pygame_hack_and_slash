@@ -31,13 +31,13 @@ def load_individual_sprites(directory_path):
     return frames
 
 # Load animation frames
-walkRight = load_sprite_sheet(os.path.join("pygame_hack&slash" ,"assets","Knight","Sprites","without_outline", "WALK.png"), 96, 80, 8)
+walkRight = load_sprite_sheet(os.path.join("assets","Knight","Sprites","without_outline", "WALK.png"), 96, 80, 8)
 walkLeft = [pygame.transform.flip(frame, True, False) for frame in walkRight]
-charIdle = load_sprite_sheet(os.path.join("pygame_hack&slash","assets","Knight","Sprites","without_outline", "IDLE.png"), 96, 80, 7)
+charIdle = load_sprite_sheet(os.path.join("assets","Knight","Sprites","without_outline", "IDLE.png"), 96, 80, 7)
 flipCharIdle = [pygame.transform.flip(frame, True, False) for frame in charIdle]
 
 # Load enemy sprites
-enemyFly = load_individual_sprites(os.path.join("pygame_hack&slash","assets", "Knight", "Sprites", "EnemyFly"))
+enemyFly = load_individual_sprites(os.path.join("assets", "Knight", "Sprites", "EnemyFly"))
 
 def draw_health_bar(surface, x, y, health, maxHealth):
     barWidth = 100
