@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f30ab41-1f40-4a60-8e57-b656549fc499" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/pygame_hack&amp;slash/character.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_hack&amp;slash/character.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pygame_hack&amp;slash/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_hack&amp;slash/constants.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pygame_hack&amp;slash/firstGame.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_hack&amp;slash/firstGame.py" afterDir="false" />
-    </list>
+    <list default="true" id="7f30ab41-1f40-4a60-8e57-b656549fc499" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

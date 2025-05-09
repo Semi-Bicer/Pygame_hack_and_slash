@@ -1,6 +1,6 @@
 import pygame
 import constants
-from character import load_sprite_sheet
+from functions import *
 
 class Boss:
     def __init__(self, x, y):
