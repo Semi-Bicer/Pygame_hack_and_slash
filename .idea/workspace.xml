@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f30ab41-1f40-4a60-8e57-b656549fc499" name="Changes" comment="" />
+    <list default="true" id="7f30ab41-1f40-4a60-8e57-b656549fc499" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pygame_hack&amp;slash/boss.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_hack&amp;slash/boss.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pygame_hack&amp;slash/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_hack&amp;slash/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pygame_hack&amp;slash/firstGame.py" beforeDir="false" afterPath="$PROJECT_DIR$/pygame_hack&amp;slash/firstGame.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -45,6 +50,7 @@
     "Python.boss.executor": "Run",
     "Python.character.executor": "Run",
     "Python.firstGame.executor": "Run",
+    "Python.firstgam.executor": "Run",
     "Python.uyg.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
