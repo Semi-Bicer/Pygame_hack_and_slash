@@ -14,7 +14,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # ─── BOSS SABİTLERİ ────────────────────────────────────────────────────────────
-BOSS_SPRITE_SHEET   = os.path.join("assets", "Boss", "skeletonIdle-Sheet64x64.png")
+BOSS_SPRITE_SHEET   = os.path.join("pygame_hack&slash","assets", "Boss", "skeletonIdle-Sheet64x64.png")
 BOSS_FRAME_WIDTH    = 64
 BOSS_FRAME_HEIGHT   = 64
 BOSS_NUM_FRAMES     = 8

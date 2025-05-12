@@ -1,6 +1,6 @@
 import pygame
 import os
-from character import Player, enemyFly
+from character import Character
 from boss import Boss
 import constants
 from weapon import Weapon
@@ -56,7 +56,7 @@ dungeonMasterWalk = load_individual_sprites(os.path.join("pygame_hack&slash","as
 
 mob_types = ["knight", "flyEye"]
 animation_types = ["idle", "walk"]
-animation_list = [charIdle, walkRight] # for player
+animation_list = [charIdle, walkRight] # for Character
 animation_list2 = [enemyFly,enemyFly] # for first enemy
 animation_list3 = [dungeonMasterWalk,dungeonMasterWalk] # for first boss
 mob_animations = [animation_list, animation_list2,animation_list3]
@@ -84,29 +84,10 @@ def draw_start_button():
     return btn_rect
 
 # Arkaplan
-bg = pygame.image.load(os.path.join("assets", "PixelArtForest", "Preview", "Background.png"))
+bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
 
 
-def redrawGameWindow():
-    #win.fill((0,0,0)) # this will fill the screen with black color
-    win.blit(bg, (0, 0))
 
-    # Draw the player character
-    Character.draw(win, font)
-    
-
-    # Bullets
-    for bullet in bullets:
-        # Move the bullet based on its facing direction
-        bullet.x += (bullet.vel * bullet.facing)
-
-        # Remove bullets that go off-screen
-        if bullet.x > screenWidth or bullet.x < 0:
-            bullets.pop(bullets.index(bullet))
-        else:
-            bullet.draw(win)
-
-    pygame.display.update()
 
 
 ###
@@ -139,9 +120,10 @@ clock = pygame.time.Clock()
 #####################################################################################
 # this is the main loop of the game
 #####################################################################################
-Character = Player(constants.screenWidth//2, constants.screenHeight//2, 96, 84, constants.screenWidth, constants.screenHeight,mob_animations, 0)
-
+Character = Character(constants.screenWidth//2, constants.screenHeight//2, 96, 84, constants.screenWidth, constants.screenHeight,mob_animations, 0)
 axe = Weapon(weapon_image)
+
+boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y)
 bullets = []
 run = True
 
@@ -200,17 +182,17 @@ while run:
         continue
 
     keys = pygame.key.get_pressed()
-    player.move(keys)  # ⬅️ Character ➞ player
+    Character.move(keys)  # ⬅️ Character ➞ Character
 
     if keys[pygame.K_v] and len(bullets) < 5:
-        facing = -1 if player.leftIdle or player.left else 1
+        facing = -1 if Character.leftIdle or Character.left else 1
         w = enemyFly[0].get_width()
         h = enemyFly[0].get_height()
-        bx = player.x + player.width if facing == 1 else player.x - w
-        by = player.y + player.height//2 - h//2
+        bx = Character.x + Character.width if facing == 1 else Character.x - w
+        by = Character.y + Character.height//2 - h//2
         bullets.append(Projectile(bx, by, w, h, facing, 10))
 
-    if keys[pygame.K_SPACE] and player.health > 0:
+    if keys[pygame.K_SPACE] and Character.health > 0:
         pygame.time.delay(100)
 
     redrawGameWindow()

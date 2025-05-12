@@ -15,7 +15,7 @@ def draw_health_bar(surface, x, y, health, maxHealth):
     pygame.draw.rect(surface, (255, 0, 0), fill_rect)
     pygame.draw.rect(surface, (255, 255, 255), border_rect, 2)
 
-class Player(object):
+class Character(object):
     def __init__(self, x, y, width, height, screenWidth, screenHeight, mob_animations, char_type):
         self.x = x
         self.y = y
