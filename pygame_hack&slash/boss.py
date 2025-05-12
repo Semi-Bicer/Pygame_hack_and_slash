@@ -6,9 +6,8 @@ from character import draw_health_bar  # ⚠️ Sağlık çubuğu için
 
 class Boss:
     def __init__(self, x, y):
-        sheet = constants.BOSS_SPRITE_SHEET
         self.idleSprites = load_sprite_sheet(
-            sheet,
+            constants.BOSS_SPRITE_SHEET,
             constants.BOSS_FRAME_WIDTH,
             constants.BOSS_FRAME_HEIGHT,
             constants.BOSS_NUM_FRAMES
@@ -35,11 +34,13 @@ class Boss:
             self.y += constants.BOSS_SPEED * (dy / dist)
 
     def draw(self, win):
-        # Animasyon sayaç kontrolü
         if self.idleCount >= len(self.idleSprites):
             self.idleCount = 0
-        win.blit(self.idleSprites[self.idleCount], (self.x, self.y))
+        sprite = self.idleSprites[self.idleCount]
+        win.blit(sprite, (self.x, self.y))
         self.idleCount += 1
 
-        # 💥 Sağlık çubuğunu çiz
+        # 🛠 DEBUG: Sprite çizim alanını göster
+        pygame.draw.rect(win, (255, 0, 255), (self.x, self.y, sprite.get_width(), sprite.get_height()), 1)
+
         draw_health_bar(win, self.x, self.y, self.health, self.maxHealth)

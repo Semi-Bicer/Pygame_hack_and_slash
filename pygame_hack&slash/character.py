@@ -3,9 +3,6 @@ import os
 import math
 import constants
 
-
-
-
 def draw_health_bar(surface, x, y, health, maxHealth):
     barWidth = 100
     barHeight = 10
@@ -23,12 +20,12 @@ class Character(object):
         self.height = height
         self.rect = pygame.Rect(x, y, width, height)
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
-        self.vel = 5
-        self.dashVel = 15.0
-        self.health = 100
-        self.maxHealth = 100
+        self.vel = constants.CHAR_SPEED
+        self.dashVel = constants.CHAR_DASH_SPEED
+        self.health = constants.CHAR_HEALTH
+        self.maxHealth = constants.CHAR_MAX_HEALTH
         self.isDashing = False
-        self.dashMultiplier = 10
+        self.dashMultiplier = constants.CHAR_DASH_MULTIPLIER
         # Animation
         # rotation of the player
         self.char_type = char_type
@@ -136,7 +133,7 @@ class Character(object):
         else:
             self.update_action(0)
         # animation delay
-        animation_cooldown = 100
+        animation_cooldown = constants.CHAR_ANIM_COOLDOWN_MS
         # update player
         if self.frame_index + 1 >= len(self.animation_list[1]):
             self.frame_index = 0
@@ -184,5 +181,3 @@ class Character(object):
         if self.health <= 0:
             gameOverText = font.render("GAME OVER", True, (255, 255, 255))
             win.blit(gameOverText, ((self.screenWidth // 2 - gameOverText.get_width() // 2), 300))
-
-    

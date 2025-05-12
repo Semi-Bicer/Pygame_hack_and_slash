@@ -2,13 +2,19 @@ import os
 import pygame
 
 # Sprite loading functions
-def load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites):
-    sheet = pygame.image.load(sheet_path)
+def load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites, scale_factor=1):
+    sheet = pygame.image.load(sheet_path).convert_alpha()
     frames = []
     for i in range(num_sprites):
         frame = sheet.subsurface((i * sprite_width, 0, sprite_width, sprite_height))
+        # Yeni: büyüt
+        frame = pygame.transform.scale(
+            frame,
+            (int(frame.get_width() * scale_factor), int(frame.get_height() * scale_factor))
+        )
         frames.append(frame)
     return frames
+
 
 def load_individual_sprites(directory_path):
     frames = []

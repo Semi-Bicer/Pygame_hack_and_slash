@@ -1,6 +1,6 @@
 import os
 
-FPS = 60
+FPS = 30
 screenWidth = 800
 screenHeight = 600
 scale = 1
@@ -13,13 +13,21 @@ BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
+# ─── HERO SABİTLERİ ──────────────────────────────────────────────────────────
+CHAR_HEALTH           = 100
+CHAR_MAX_HEALTH       = 100
+CHAR_SPEED            = 5
+CHAR_DASH_SPEED       = 15.0
+CHAR_DASH_MULTIPLIER  = 10
+CHAR_ANIM_COOLDOWN_MS = 100
+
 # ─── BOSS SABİTLERİ ────────────────────────────────────────────────────────────
-BOSS_SPRITE_SHEET   = os.path.join("pygame_hack&slash","assets", "Boss", "skeletonIdle-Sheet64x64.png")
-BOSS_FRAME_WIDTH    = 64
-BOSS_FRAME_HEIGHT   = 64
-BOSS_NUM_FRAMES     = 8
+BOSS_SPRITE_SHEET   = os.path.join("assets", "Boss", "IDLE.png")
+BOSS_FRAME_WIDTH    = 128
+BOSS_FRAME_HEIGHT   = 108
+BOSS_NUM_FRAMES     = 6
 BOSS_START_X        = 300
 BOSS_START_Y        = 100
-BOSS_SPEED          = 2.0                # 💥 Boss takip hızı
+BOSS_SPEED          = 5                  # 💥 Boss takip hızı
 BOSS_FOLLOW_DISTANCE= 200                # 💥 Kaç piksele kadar takip edecek
 BOSS_HEALTH         = 100                # 💥 Boss sağlık değeri
