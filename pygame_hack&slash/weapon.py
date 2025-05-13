@@ -1,6 +1,6 @@
 import pygame
 
-class Weapon(object):
+class Weapon:
     def __init__(self, image):
         self.original_image = image
         self.angle = 0
