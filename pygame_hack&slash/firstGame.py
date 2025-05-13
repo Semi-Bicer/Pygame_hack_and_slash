@@ -5,37 +5,37 @@ from character import Character
 from boss import Boss
 from functions import *
 import math
-#from Background import SamuraiBackground
+from Background import SamuraiBackground
 
 pygame.init()
 
 win = pygame.display.set_mode((constants.screenWidth, constants.screenHeight))
 pygame.display.set_caption("Boss Fight")
 
-bg = pygame.image.load(os.path.join("assets", "PixelArtForest", "Preview", "Background.png"))
-#bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)              # geçici bg gibi (silinebilir)
+#bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
+bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)              # geçici bg gibi (silinebilir)
+attack = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "ATTACK 1.png"),96,80,7)
+dash = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "DASH.png"),95,80,8)
+walkRight = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "WALK.png"),96,80,12)
+charIdle = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "IDLE.png"),96,80,10)
 
-walkRight = load_individual_sprites(os.path.join("assets", "Roguelike Dungeon - Asset Bundle", "Sprites", "Player", "Axe", "Defence0", "Walk"))
-charIdle = load_individual_sprites(os.path.join("assets", "Roguelike Dungeon - Asset Bundle", "Sprites", "Player", "Axe", "Defence0", "Idle"))
 
-walkRight = [pygame.transform.scale(frame, (frame.get_width() * constants.scale, frame.get_height() * constants.scale)) for frame in walkRight]
-charIdle = [pygame.transform.scale(frame, (frame.get_width() * constants.scale, frame.get_height() * constants.scale)) for frame in charIdle]
+shuriken = load_single_image(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "shuriken.png"), constants.scale)
 
-enemyFly = load_individual_sprites(os.path.join("assets", "Knight", "Sprites", "EnemyFly"))
-dungeonMasterWalk = load_individual_sprites(os.path.join("assets", "Roguelike Dungeon - Asset Bundle", "Sprites", "Bosses", "Dungeon Master", "Walk"))
+dungeonMasterWalk = load_individual_sprites(os.path.join("pygame_hack&slash","assets", "Roguelike Dungeon - Asset Bundle", "Sprites", "Bosses", "Dungeon Master","Walk"))
+
 
 mob_types = ["knight", "flyEye"]
-animation_list = [charIdle, walkRight]
-animation_list2 = [enemyFly, enemyFly]
+animation_list = [charIdle, walkRight, dash, attack]
+animation_list2 = [shuriken, shuriken]
 animation_list3 = [dungeonMasterWalk, dungeonMasterWalk]
 mob_animations = [animation_list, animation_list2, animation_list3]
 
 game_active = False
 font = pygame.font.SysFont("comicsans", 30)
 
-def draw_start_button(win, font):  # Parametre ekleyin
-    btn_rect = pygame.Rect(constants.screenWidth // 2 - 100, constants.screenHeight // 2 - 25,
-                         constants.START_BUTTON_WIDTH, constants.START_BUTTON_HEIGHT)
+def draw_start_button():
+    btn_rect = pygame.Rect(constants.screenWidth//2 - 100, constants.screenHeight//2 - 25, 200,50)
     pygame.draw.rect(win, (0, 200, 0), btn_rect)
     text = font.render("Start", True, constants.WHITE)
     win.blit(text, (btn_rect.x + 50, btn_rect.y + 4))
@@ -50,9 +50,15 @@ class Projectile:
         self.vel = vel
         self.facing = facing
         self.frameCount = 0
-        self.sprites = enemyFly
+        self.sprites = shuriken
 
     def draw(self, win):
+        # Check if sprites list is not empty
+        if not self.sprites or len(self.sprites) == 0:
+            # Draw a simple rectangle if no sprites are available
+            pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.width, self.height))
+            return
+
         if self.frameCount >= len(self.sprites):
             self.frameCount = 0
 
@@ -70,9 +76,9 @@ bullets = []
 run = True
 
 def redrawGameWindow():
-    #bg.update()
-    #bg.draw(win)
-    win.blit(bg, (0, 0))
+    bg.update()
+    bg.draw(win)
+    #win.blit(bg, (0, 0))
 
     boss.update(player)
     boss.draw(win)
@@ -82,6 +88,7 @@ def redrawGameWindow():
     for bullet in bullets[:]:
         bullet.x += (bullet.vel * bullet.facing)
 
+        # Ekran dışına çıkan mermiler
         if bullet.x > constants.screenWidth or bullet.x < 0:
             bullets.remove(bullet)
             continue
@@ -117,25 +124,35 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if not game_active and event.type == pygame.MOUSEBUTTONDOWN:
-            if draw_start_button(win, font).collidepoint(pygame.mouse.get_pos()):
+            if draw_start_button().collidepoint(pygame.mouse.get_pos()):
                 game_active = True
 
     if not game_active:
         win.fill(constants.BLACK)
-        draw_start_button(win, font)
+        draw_start_button()
         pygame.display.update()
         continue
 
     keys = pygame.key.get_pressed()
     player.move(keys)
 
-    if keys[pygame.K_v] and len(bullets) < 1:
+    if keys[pygame.K_v] and len(bullets) < 5:
+
         facing = -1 if player.leftIdle or player.left else 1
-        w = enemyFly[0].get_width()
-        h = enemyFly[0].get_height()
-        bx = player.x + player.width if facing == 1 else player.x - w
-        by = player.y + player.height // 2 - h // 2
-        bullets.append(Projectile(bx, by, w, h, facing, 10))
+        # Check if shuriken list is not empty before accessing elements
+        if shuriken and len(shuriken) > 0:
+            w = shuriken[0].get_width()
+            h = shuriken[0].get_height()
+            bx = player.x + player.width if facing == 1 else player.x - w
+            by = player.y + player.height // 2 - h // 2
+            bullets.append(Projectile(bx, by, w, h, facing, 10))
+        else:
+            print("Warning: shuriken list is empty. Cannot create projectile.")
+            # Use default values if shuriken is not available
+            w, h = 20, 20  # Default size
+            bx = player.x + player.width if facing == 1 else player.x - w
+            by = player.y + player.height // 2 - h // 2
+            bullets.append(Projectile(bx, by, w, h, facing, 10))
 
     if keys[pygame.K_SPACE] and player.health > 0:
         pygame.time.delay(100)

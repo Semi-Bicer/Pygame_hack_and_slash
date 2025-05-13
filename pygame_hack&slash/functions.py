@@ -23,7 +23,7 @@ def load_individual_sprites(directory_path):
         print(f"Error loading sprites from {directory_path}: {e}")
     return frames
 
-def load_and_scale_sheet(sheet_path, sprite_width, sprite_height, num_sprites, scale):
+def load_and_scale_sheet(sheet_path, sprite_width, sprite_height, num_sprites, scale=constants.scale):
     frames = load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites)
     scaled_frames = []
     for frame in frames:
@@ -42,4 +42,17 @@ def draw_health_bar(surface, x, y, health, maxHealth, width=100):
     fill_rect = pygame.Rect(x, y, fill, barHeight)
     pygame.draw.rect(surface, (255, 0, 0), fill_rect)
     pygame.draw.rect(surface, (255, 255, 255), border_rect, 2)
+
+def load_single_image(image_path, scale=1.0):
+    frames = []
+    try:
+        image = pygame.image.load(image_path).convert_alpha()
+        if scale != 1.0:
+            width = int(image.get_width() * scale)
+            height = int(image.get_height() * scale)
+            image = pygame.transform.scale(image, (width, height))
+        frames.append(image)
+    except Exception as e:
+        print(f"Error loading image from {image_path}: {e}")
+    return frames
 
