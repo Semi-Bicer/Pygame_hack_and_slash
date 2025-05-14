@@ -2,8 +2,8 @@ import os
 
 # Genel ayarlar
 FPS = 60
-screenWidth = 800
-screenHeight = 600
+screenWidth = 1000
+screenHeight = 800
 scale = 2
 dash_delay = 2
 
@@ -16,6 +16,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # Karakter sabitleri
+CHAR_X                = 500
+CHAR_Y                = 700
 CHAR_HEALTH           = 100
 CHAR_MAX_HEALTH       = 100
 CHAR_SPEED            = 5
@@ -27,13 +29,14 @@ CHAR_ANIM_COOLDOWN_MS = 100
 BOSS_FRAME_WIDTH      = 128
 BOSS_FRAME_HEIGHT     = 108
 BOSS_NUM_FRAMES       = 6
-BOSS_START_X          = 300
-BOSS_START_Y          = 300
+BOSS_START_X          = 500
+BOSS_START_Y          = 400
 BOSS_SPEED            = 2.0
 BOSS_FOLLOW_DISTANCE  = 400
 BOSS_HEALTH           = 100
 BOSS_SCALE = 2  # 1.5 kat büyük
-BOSS_HITBOX_OFFSET_Y = 20  # Hitbox ayarı için
+BOSS_HITBOX_OFFSET_Y = 22  # Hitbox ayarı için
+BOSS_HITBOX_OFFSET_X = 25
 
 # Projeksil sabitleri
 PROJECTILE_VELOCITY = 10

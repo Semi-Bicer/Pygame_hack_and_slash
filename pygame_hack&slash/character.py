@@ -48,8 +48,10 @@ class Character(object):
         self.vertical = 0
         # Attack
         self.attack_rect = pygame.Rect(0, 0, 50, 50)  # Saldırı hitbox'ı
+        self.attack_frame = 0
+        self.has_dealt_damage = False
         self.is_attacking = False
-        self.attack_duration = 1000  # ms cinsinden saldırı süresi
+        self.attack_frame_duration = 100  # ms cinsinden saldırı süresi
         self.attack_start_time = 0
         self.attack_cooldown = 1200  # ms cinsinden saldırı bekleme süresi
         self.last_attack_time = 0
@@ -140,43 +142,47 @@ class Character(object):
             self.health -= 10
 
     
-        
-
-
-
     def update(self):
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
         # checking action
-        if self.walking:
-            self.update_action(1)
+        if self.is_attacking:
+            self.update_action(3)
         elif self.isDashing:
             self.update_action(2)
-        elif self.is_attacking:
-            self.update_action(3)
+        elif self.walking:
+            self.update_action(1)
         else:
             self.update_action(0)
         
         # Saldırı hitbox'ını karakterin yönüne göre güncelle
-        if self.flip:  # Karakter sola bakıyorsa
+        if self.flip:  
             self.attack_rect.midright = self.rect.midleft
-        else:  # Karakter sağa bakıyorsa
+        else:  
             self.attack_rect.midleft = self.rect.midright
 
         # animation delay
         animation_cooldown = constants.CHAR_ANIM_COOLDOWN_MS
-        # update player
-        if self.frame_index + 1 >= len(self.animation_list[3]):
-            self.frame_index = 0
         
-        
-        if abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
-            if self.isDashing:
-                print("dashing")
+        if self.is_attacking: # attack animation
+            #print("attacking")
+            self.image = self.animation_list[3][self.frame_index]
+            if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
+                print("attack frame: ", self.frame_index)
+                self.last_update = pygame.time.get_ticks()
+                self.frame_index = (self.frame_index + 1) % len(self.animation_list[3])
+
+                if self.frame_index == self.attack_frame:
+                    self.has_dealt_damage = False # after attack frame damage dealt off
+                
+        elif self.isDashing:
+                #print("dashing")
                 self.image = self.animation_list[2][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[2])
-            elif self.left:
+
+        elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
+            if self.left:
                 self.image = self.animation_list[1][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
@@ -186,12 +192,6 @@ class Character(object):
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
-        elif self.is_attacking: # attack animation
-            print("attacking")
-            self.image = self.animation_list[3][self.frame_index]
-            if pygame.time.get_ticks() - self.last_update >= self.attack_duration:
-                self.last_update = pygame.time.get_ticks()
-                self.frame_index = (self.frame_index + 1) % len(self.animation_list[3])
         else: # idle animation
             #print("idle")
             if self.leftIdle:
@@ -206,7 +206,7 @@ class Character(object):
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[0])
         
         # Saldırı süresi kontrolü
-        if self.is_attacking and self.last_update - self.last_attack_time > self.attack_duration:
+        if self.is_attacking and self.last_update - self.last_attack_time > self.attack_cooldown:
             self.is_attacking = False
 
 
@@ -218,7 +218,7 @@ class Character(object):
             self.last_update = pygame.time.get_ticks()
 
     def draw(self, win, font):
-        pygame.draw.rect(win, constants.RED, self.rect, 1)
+        #pygame.draw.rect(win, constants.RED, self.rect, 1)
         flipped_image = pygame.transform.flip(self.image, self.flip, False)
         if(self.char_type == 0):
             win.blit(flipped_image, (self.rect.x - constants.scale *constants.OFFSET_X, self.rect.y - constants.scale *constants.OFFSET_Y))

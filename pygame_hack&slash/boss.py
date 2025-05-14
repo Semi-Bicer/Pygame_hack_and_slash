@@ -15,10 +15,10 @@ class Boss:
         self.height = int(self.original_height * self.scale)
 
         # Hitbox için offset değerleri
-        self.hitbox_offset_x = 20 * self.scale
+        self.hitbox_offset_x = constants.BOSS_HITBOX_OFFSET_X * self.scale
         self.hitbox_offset_y = constants.BOSS_HITBOX_OFFSET_Y * self.scale
-        self.hitbox_width = 80 * self.scale
-        self.hitbox_height = 80 * self.scale
+        self.hitbox_width = constants.BOSS_FRAME_WIDTH * self.scale - self.hitbox_offset_x * self.scale
+        self.hitbox_height = constants.BOSS_FRAME_HEIGHT * self.scale - self.hitbox_offset_y * self.scale
 
         # Pozisyon ayarları
         self.x = x - self.width // 2
@@ -166,6 +166,7 @@ class Boss:
         self.action = choice
 
     def draw(self, win):
+        #pygame.draw.rect(win, constants.RED, self.rect, 1)
         animation_cooldown = 100
         frames = self.get_animation()
 
@@ -177,7 +178,7 @@ class Boss:
 
         sprite = frames[self.frame_index]
         flipped_sprite = pygame.transform.flip(sprite, self.flip, False)
-        win.blit(flipped_sprite, (self.x, self.y))
+        win.blit(flipped_sprite, (self.x - self.hitbox_offset_x * self.scale, self.y - self.hitbox_offset_y * self.scale))
 
         # Health bar
         health_bar_width = 100 * self.scale

@@ -14,10 +14,10 @@ pygame.display.set_caption("Boss Fight")
 
 #bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)              # geçici bg gibi (silinebilir)
-attack = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "ATTACK 1.png"),96,80,7)
-dash = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "DASH.png"),95,80,8)
-walkRight = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "WALK.png"),96,80,12)
-charIdle = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "IDLE.png"),96,80,10)
+attack = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "ATTACK 1.png"),96,84,7)
+dash = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "DASH.png"),95,84,8)
+walkRight = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "WALK.png"),96,84,12)
+charIdle = load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "Sprites", "IDLE.png"),96,84,10)
 
 
 shuriken = load_single_image(os.path.join("pygame_hack&slash","assets", "FULL_Samurai 2D Pixel Art v1.2", "shuriken.png"), constants.scale)
@@ -70,7 +70,7 @@ class Projectile:
 
 clock = pygame.time.Clock()
 
-player = Character(constants.screenWidth // 2, constants.screenHeight // 2, 96, 84, constants.screenWidth, constants.screenHeight, mob_animations, 0)
+player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, mob_animations, 0)
 boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50)
 bullets = []
 run = True
@@ -84,6 +84,17 @@ def redrawGameWindow():
     boss.draw(win)
     player.draw(win, font)
     player.update()
+    
+    boss_rect = pygame.Rect(boss.x, boss.y, boss.rect.width- constants.BOSS_HITBOX_OFFSET_X * 3, boss.rect.height - constants.BOSS_HITBOX_OFFSET_Y)
+    pygame.draw.rect(win, constants.RED, boss_rect, 1)
+    #print(f"Player attacking: {player.is_attacking}, Frame: {player.frame_index}, Attack frame: {player.attack_frame}, Has dealt damage: {player.has_dealt_damage}")
+    
+    if player.is_attacking:
+        if player.frame_index == player.attack_frame and not player.has_dealt_damage:
+            if player.attack_rect.colliderect(boss_rect):
+                boss.take_damage(player.attack_damage)
+                player.has_dealt_damage = True
+                print("Boss hit! Sağlık:", boss.health)
 
     for bullet in bullets[:]:
         bullet.x += (bullet.vel * bullet.facing)
@@ -94,7 +105,7 @@ def redrawGameWindow():
             continue
 
         bullet_rect = pygame.Rect(bullet.x, bullet.y, bullet.width, bullet.height)
-        boss_rect = pygame.Rect(boss.x, boss.y, constants.BOSS_FRAME_WIDTH, constants.BOSS_FRAME_HEIGHT)
+        
 
         if bullet_rect.colliderect(boss_rect):
             bullets.remove(bullet)
@@ -110,7 +121,7 @@ def redrawGameWindow():
 
     pygame.display.update()
 
-# Yeni: boss saldırısı oyuncuya temas ederse hasar
+
     if boss.action.startswith("attack") or boss.action == "jump_attack":
         boss_rect = pygame.Rect(boss.x + 20, boss.y + 20, 80, 80)  # hasar kutusu
         if boss_rect.colliderect(player.rect):
@@ -136,7 +147,7 @@ while run:
     keys = pygame.key.get_pressed()
     player.move(keys)
 
-    if keys[pygame.K_v] and len(bullets) < 5:
+    if keys[pygame.K_v] and len(bullets) < 1:
 
         facing = -1 if player.leftIdle or player.left else 1
         # Check if shuriken list is not empty before accessing elements
