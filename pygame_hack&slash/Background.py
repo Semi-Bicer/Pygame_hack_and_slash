@@ -1,8 +1,7 @@
 import pygame
 import random
 import math
-from constants import *
-
+import constants
 
 class SamuraiBackground:
     def __init__(self, width=1920, height=1080):
@@ -10,9 +9,9 @@ class SamuraiBackground:
         self.height = height
 
         # Renk paleti
-        self.sky_colors = [(32, 18, 59), (253, 94, 83), (255, 159, 28)]  # Günbatımı gradienti
-        self.ground_color = (45, 86, 44)  # Çimen yeşili
-        self.tree_trunk = (48, 28, 19)  # Ağaç gövdesi
+        self.sky_colors = constants.SKY_GRADIENT  # Günbatımı gradienti
+        self.ground_color = constants.GROUND_GREEN  # Çimen yeşili
+        self.tree_trunk = constants.TREE_BROWN  # Ağaç gövdesi
         self.leaves = [
             (214, 40, 40),  # Kırmızı
             (247, 127, 0),  # Turuncu

@@ -1,9 +1,10 @@
+#boss.py
 import pygame
 import math
-import constants
-from functions import load_and_scale_sheet, draw_health_bar
 import os
 import random
+import constants
+from functions import load_and_scale_sheet, draw_health_bar
 
 
 class Boss:
@@ -40,48 +41,43 @@ class Boss:
         self.invincible = False
         self.phase_transition = False
 
+        self.phase2_speed_multiplier = 1.5
+        self.phase2_damage_multiplier = 2
+        self.dash_cooldown = 3000
+        self.last_dash_time = 0
+        self.is_dashing = False
+        self.dash_duration = 300
+        self.dash_start_time = 0
+        self.dash_direction = (0, 0)
+        self.dash_speed = 15
         self.attack_cooldown = 2000
         self.last_attack_time = pygame.time.get_ticks()
 
-        # Animasyonları yükle
+        assets = os.path.join("assets", "Boss")
         self.animations = {
-            "attack1": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "ATTACK 1.png"),
-                                            self.original_width, self.original_height, 7, self.scale),
-            "attack1_flame": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "ATTACK 1 (FLAMING SWORD).png"),
-                                                  self.original_width, self.original_height, 7, self.scale),
-            "attack2": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "ATTACK 2.png"),
-                                            self.original_width, self.original_height, 5, self.scale),
-            "attack2_flame": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "ATTACK 2 (FLAMING SWORD).png"),
-                                                  self.original_width, self.original_height, 6, self.scale),
-            "attack3": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "ATTACK 3.png"),
-                                            self.original_width, self.original_height, 7, self.scale),
-            "attack3_flame": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "ATTACK 3 (FLAMING SWORD).png"),
-                                                  self.original_width, self.original_height, 7, self.scale),
-            "jump_attack": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "JUMP ATTACK.png"),
-                                                self.original_width, self.original_height, 12, self.scale),
-            "jump_attack_flame": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "JUMP ATTACK (FLAMING SWORD).png"),
-                                                      self.original_width, self.original_height, 11, self.scale),
-            "idle": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "IDLE.png"),
-                                         self.original_width, self.original_height, 6, self.scale),
-            "idle_flame": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "IDLE (FLAMING SWORD).png"),
-                                               self.original_width, self.original_height, 6, self.scale),
-            "run": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "RUN.png"),
-                                        self.original_width, self.original_height, 8, self.scale),
-            "run_flame": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "RUN (FLAMING SWORD).png"),
-                                              self.original_width, self.original_height, 8, self.scale),
-            "hurt": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "HURT.png"),
-                                         self.original_width, self.original_height, 4, self.scale),
-            "hurt_flame": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "HURT (FLAMING SWORD).png"),
-                                               self.original_width, self.original_height, 4, self.scale),
-            "death": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "DEATH.png"),
-                                          self.original_width, self.original_height, 26, self.scale),
-            "shout": load_and_scale_sheet(os.path.join("pygame_hack&slash","assets", "Boss", "SHOUT.png"),
-                                          self.original_width, self.original_height, 17, self.scale),
+            "attack1": load_and_scale_sheet(os.path.join(assets, "ATTACK 1.png"), self.original_width, self.original_height, 7, self.scale),
+            "attack1_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 1 (FLAMING SWORD).png"), self.original_width, self.original_height, 7, self.scale),
+            "attack2": load_and_scale_sheet(os.path.join(assets, "ATTACK 2.png"), self.original_width, self.original_height, 5, self.scale),
+            "attack2_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 2 (FLAMING SWORD).png"), self.original_width, self.original_height, 6, self.scale),
+            "attack3": load_and_scale_sheet(os.path.join(assets, "ATTACK 3.png"), self.original_width, self.original_height, 7, self.scale),
+            "attack3_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 3 (FLAMING SWORD).png"), self.original_width, self.original_height, 7, self.scale),
+            "jump_attack": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK.png"), self.original_width, self.original_height, 12, self.scale),
+            "jump_attack_flame": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK (FLAMING SWORD).png"), self.original_width, self.original_height, 11, self.scale),
+            "idle": load_and_scale_sheet(os.path.join(assets, "IDLE.png"), self.original_width, self.original_height, 6, self.scale),
+            "idle_flame": load_and_scale_sheet(os.path.join(assets, "IDLE (FLAMING SWORD).png"), self.original_width, self.original_height, 6, self.scale),
+            "run": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8, self.scale),
+            "run_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8, self.scale),
+            "dash": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8, self.scale),
+            "dash_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8, self.scale),
+            "hurt": load_and_scale_sheet(os.path.join(assets, "HURT.png"), self.original_width, self.original_height, 4, self.scale),
+            "hurt_flame": load_and_scale_sheet(os.path.join(assets, "HURT (FLAMING SWORD).png"), self.original_width, self.original_height, 4, self.scale),
+            "death": load_and_scale_sheet(os.path.join(assets, "DEATH.png"), self.original_width, self.original_height, 26, self.scale),
+            "shout": load_and_scale_sheet(os.path.join(assets, "SHOUT.png"), self.original_width, self.original_height, 17, self.scale),
         }
 
     def get_animation(self):
         anim_key = self.action
-        if self.phase == 2 and self.action in ["idle", "run", "hurt", "attack1", "attack2", "attack3"]:
+        if self.phase == 2 and self.action in ["idle", "run", "hurt", "attack1", "attack2", "attack3", "jump_attack", "dash"]:
             anim_key += "_flame"
         return self.animations.get(anim_key, self.animations["idle"])
 
@@ -91,13 +87,11 @@ class Boss:
             if self.health <= 0:
                 self.health = 0
                 self.action = "death"
-                self.frame_index = 0
-                self.last_update = pygame.time.get_ticks()
             else:
-                hurt_anim = "hurt_flame" if self.phase == 2 else "hurt"
-                self.action = hurt_anim
-                self.frame_index = 0
-                self.last_update = pygame.time.get_ticks()
+                self.action = "hurt_flame" if self.phase == 2 else "hurt"
+
+            self.frame_index = 0
+            self.last_update = pygame.time.get_ticks()
 
             if self.phase == 1 and self.health <= self.maxHealth // 2:
                 self.phase_transition = True
@@ -105,6 +99,21 @@ class Boss:
                 self.action = "shout"
                 self.frame_index = 0
                 self.last_update = pygame.time.get_ticks()
+
+    def dash_to_player(self, player):
+        if self.is_dashing:
+            return
+
+        dx = player.x - self.x
+        dy = player.y - self.y
+        dist = math.hypot(dx, dy)
+
+        self.dash_direction = (dx / dist, dy / dist) if dist else (0, 0)
+        self.is_dashing = True
+        self.dash_start_time = pygame.time.get_ticks()
+        self.action = "dash_flame" if self.phase == 2 else "dash"
+        self.frame_index = 0
+        self.last_dash_time = pygame.time.get_ticks()
 
     def update(self, player):
         now = pygame.time.get_ticks()
@@ -121,10 +130,23 @@ class Boss:
                 self.invincible = False
                 self.phase = 2
                 self.action = "idle"
+                self.attack_cooldown = int(self.attack_cooldown / self.phase2_speed_multiplier)
+                self.dash_speed *= 1.5
             return
 
         if self.action in ["shout", "death"]:
             if self.frame_index >= len(self.get_animation()):
+                self.action = "idle"
+            return
+
+        if self.is_dashing:
+            if now - self.dash_start_time < self.dash_duration:
+                self.x += self.dash_direction[0] * self.dash_speed
+                self.y += self.dash_direction[1] * self.dash_speed
+                self.x = max(0, min(self.x, constants.screenWidth - self.width))
+                self.y = max(0, min(self.y, constants.screenHeight - self.height))
+            else:
+                self.is_dashing = False
                 self.action = "idle"
             return
 
@@ -140,6 +162,11 @@ class Boss:
             else:
                 self.action = "idle"
 
+        if self.phase == 2 and now - self.last_dash_time > self.dash_cooldown:
+            if random.random() < 0.3:
+                self.dash_to_player(player)
+                return
+
         dx = player.x - self.x
         dy = player.y - self.y
         dist = math.hypot(dx, dy)
@@ -153,23 +180,25 @@ class Boss:
             self.last_update = now
             return
 
+        speed = constants.BOSS_SPEED * (self.phase2_speed_multiplier if self.phase == 2 else 1)
+
         if dist < constants.BOSS_FOLLOW_DISTANCE and dist > 0:
-            self.x += constants.BOSS_SPEED * (dx / dist)
-            self.y += constants.BOSS_SPEED * (dy / dist)
+            self.x += speed * (dx / dist)
+            self.y += speed * (dy / dist)
             self.action = "run"
         else:
             self.action = "idle"
 
     def choose_attack(self):
-        options = ["attack1", "attack2", "attack3", "jump_attack"]
-        choice = random.choice(options)
-        self.action = choice
+        options = ["attack1", "attack2", "attack3", "jump_attack"] * (2 if self.phase == 2 else 1)
+        self.action = random.choice(options)
 
     def draw(self, win):
-        #pygame.draw.rect(win, constants.RED, self.rect, 1)
-        animation_cooldown = 100
-        frames = self.get_animation()
+        animation_cooldown = constants.BOSS_ANIMATION_COOLDOWN
+        if self.phase == 2:
+            animation_cooldown = int(animation_cooldown / self.phase2_speed_multiplier)
 
+        frames = self.get_animation()
         if self.frame_index >= len(frames):
             if self.action in ["death", "shout"]:
                 self.frame_index = len(frames) - 1
@@ -180,7 +209,6 @@ class Boss:
         flipped_sprite = pygame.transform.flip(sprite, self.flip, False)
         win.blit(flipped_sprite, (self.x - self.hitbox_offset_x * self.scale, self.y - self.hitbox_offset_y * self.scale))
 
-        # Health bar
         health_bar_width = 100 * self.scale
         health_bar_x = self.x + (self.width - health_bar_width) // 2
         health_bar_y = self.y - 20

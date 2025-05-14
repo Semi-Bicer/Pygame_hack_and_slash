@@ -2,69 +2,89 @@ import pygame
 import os
 import math
 import constants
-
-def draw_health_bar(surface, x, y, health, maxHealth):
-    barWidth = 100
-    barHeight = 10
-    fill = (health / maxHealth) * barWidth
-    border_rect = pygame.Rect(x, y - 20, barWidth, barHeight)
-    fill_rect = pygame.Rect(x, y - 20, fill, barHeight)
-    pygame.draw.rect(surface, (255, 0, 0), fill_rect)
-    pygame.draw.rect(surface, (255, 255, 255), border_rect, 2)
+from functions import *
 
 class Character(object):
     def __init__(self, x, y, width, height, screenWidth, screenHeight, mob_animations, char_type):
+        # Pozisyon ve boyutlar
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.rect = pygame.Rect(x, y, width, height)
-        self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
+        self.rect.center = (self.x + self.width / 2, self.y + self.height / 2)
+
+        # Hareket ve hız
         self.vel = constants.CHAR_SPEED
         self.dashVel = constants.CHAR_DASH_SPEED
+        self.isDashing = False
+        self.dash_start_time = 0
+
+        # Can ve sağlık
         self.health = constants.CHAR_HEALTH
         self.maxHealth = constants.CHAR_MAX_HEALTH
-        self.isDashing = False
-        self.dashMultiplier = constants.CHAR_DASH_MULTIPLIER
-        # Animation
-        # rotation of the player
-        self.char_type = char_type
-        self.animation_list = mob_animations[char_type] # idle, walk, dash, attack
-        # to know how much time passed since last time udpated frame
+
+        # Saldırı
+        self.is_attacking = False
+        self.last_attack_time = 0
+        self.attack_cooldown = constants.CHAR_ATTACK_COOLDOWN
+        self.attack_frame_duration = constants.CHAR_ATTACK_FRAME_DURATION
+        self.attack_damage = constants.CHAR_ATTACK_DAMAGE
+        self.attack_frame = constants.CHAR_ATTACK_FRAME
+        self.has_dealt_damage = False
+
+        # Atak için çarpışma dikdörtgeni
+        self.attack_rect = pygame.Rect(0, 0, 50, 50)  # Saldırı hitbox'ı
+
+        # Animasyon kontrol
         self.last_update = pygame.time.get_ticks()
-        self.flip = False
         self.frame_index = 0
-        self.action = 0 #0 idle , 1 run, 2 dash, 3 attack
-        self.walking = False
-        self.image = self.animation_list[self.action][self.frame_index] # charIdle
-        self.left = False
-        self.right = False
-        self.up = False
-        self.down = False
-        self.leftIdle = False
-        self.screenWidth = screenWidth
-        self.screenHeight = screenHeight
+        #self.action = "idle"
+        self.flip = False
+
+        # Yönelim
         self.horizontal = 0
         self.vertical = 0
-        # Attack
-        self.attack_rect = pygame.Rect(0, 0, 50, 50)  # Saldırı hitbox'ı
-        self.attack_frame = 0
-        self.has_dealt_damage = False
-        self.is_attacking = False
-        self.attack_frame_duration = 100  # ms cinsinden saldırı süresi
-        self.attack_start_time = 0
-        self.attack_cooldown = 1200  # ms cinsinden saldırı bekleme süresi
-        self.last_attack_time = 0
-        self.attack_damage = 20
-        #dash
-        self.dash_start_time = 0
+        self.left = False
+
+        # Ekran sınırları
+        self.screenWidth = screenWidth
+        self.screenHeight = screenHeight
+
+        # Karakter tipi (render offset vs.)
+        self.char_type = char_type
+
+        self.dashMultiplier = constants.CHAR_DASH_MULTIPLIER
+        self.animation_list = mob_animations[char_type]  # idle, walk, dash, attack
+        self.action = 0  # 0 idle , 1 run, 2 dash, 3 attack
+        self.walking = False
+        self.image = self.animation_list[self.action][self.frame_index]  # charIdle
+
+        self.leftIdle = False
+
+        # Animasyonları yükle
+        #assets_path = os.path.join("assets", "Player", "Sprites")
+        #self.animations = {
+        #    "idle": load_and_scale_sheet(os.path.join(assets_path, "IDLE.png"), 96, 80, 10),
+        #    "walk": load_and_scale_sheet(os.path.join(assets_path, "WALK.png"), 96, 80, 12),
+        #    "dash": load_and_scale_sheet(os.path.join(assets_path, "DASH.png"), 95, 80, 8),
+        #    "attack": load_and_scale_sheet(os.path.join(assets_path, "ATTACK 1.png"), 96, 80, 7),
+        #    "shuriken": load_single_image(os.path.join(assets_path, "shuriken.png"), constants.scale)
+        #}
+        #self.image = self.animations["idle"][0]
+
+        # SFX yöneticisi (opsiyonel)
+        self.sfx_manager = None
+
+
+    def set_sfx_manager(self, sfx_manager):
+        self.sfx_manager = sfx_manager
 
     def move(self, keys):
         self.walking = False
-        # horizontal boolean
-        self.horizontal = int (keys[pygame.K_d]) - int (keys[pygame.K_a])
-        #vertical boolean
-        self.vertical = int(keys[pygame.K_s]) - int(keys[pygame.K_w])
+
+        self.horizontal = int(keys[pygame.K_d]) - int(keys[pygame.K_a])
+        self.vertical   = int(keys[pygame.K_s]) - int(keys[pygame.K_w])
 
         if abs(self.horizontal) or abs(self.vertical): # if moving
             self.walking = True
@@ -75,46 +95,17 @@ class Character(object):
             self.x += self.horizontal * self.vel
             self.y += self.vertical * self.vel
 
-
-        if keys[pygame.K_a] and self.x > self.vel:  # left
+        # Hangi yöne baktığını belirle
+        if self.horizontal < 0:
             self.left = True
-            self.leftIdle = True
             self.flip = True
-
-        elif keys[pygame.K_d] and self.x < (self.screenWidth - self.width - self.vel):  # right
+        elif self.horizontal > 0:
             self.left = False
-            self.leftIdle = False
             self.flip = False
-        else:  # start the idle animation
-            if self.left:
-                self.leftIdle = True
-                self.rightIdle = False
-                self.flip = True
-            else:
-                self.rightIdle = True
-                self.leftIdle = False
-                self.flip = False
-
-            self.walkCount = 0
-
-        if keys[pygame.K_w] and self.y > self.vel:  # up
-            self.up = True
-
-        else:
-            self.up = False
-
-        if keys[pygame.K_s] and self.y < (self.screenHeight - self.height - self.vel):  # down
-            self.down = True
-
-        else:
-            self.down = False
 
         # Dash movement
         if keys[pygame.K_LSHIFT]:
             self.isDashing = True
-            self.left = False
-            
-
 
         # Apply dash if active
         if self.isDashing:
@@ -130,18 +121,19 @@ class Character(object):
                 self.isDashing = False
                 self.dash_start_time = self.last_update
 
-        
+
         if keys[pygame.K_f]:
             if not self.is_attacking and self.last_update - self.last_attack_time > self.attack_cooldown:
                 self.is_attacking = True
                 self.last_attack_time = self.last_update
-        
+                # Eğer SFX eklenmek istenirse:
+                # if self.sfx_manager: self.sfx_manager.play_sound("attack")
+
 
         # Take damage with space key
         if keys[pygame.K_SPACE] and self.health > 0:
             self.health -= 10
 
-    
     def update(self):
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
         # checking action
@@ -153,16 +145,16 @@ class Character(object):
             self.update_action(1)
         else:
             self.update_action(0)
-        
+
         # Saldırı hitbox'ını karakterin yönüne göre güncelle
-        if self.flip:  
+        if self.flip:
             self.attack_rect.midright = self.rect.midleft
-        else:  
+        else:
             self.attack_rect.midleft = self.rect.midright
 
         # animation delay
         animation_cooldown = constants.CHAR_ANIM_COOLDOWN_MS
-        
+
         if self.is_attacking: # attack animation
             #print("attacking")
             self.image = self.animation_list[3][self.frame_index]
@@ -173,16 +165,18 @@ class Character(object):
 
                 if self.frame_index == self.attack_frame:
                     self.has_dealt_damage = False # after attack frame damage dealt off
-                
-        elif self.isDashing:
-                #print("dashing")
+
+
+
+        elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
+            if self.isDashing:
+                # print("dashing")
                 self.image = self.animation_list[2][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[2])
 
-        elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
-            if self.left:
+            elif self.left:
                 self.image = self.animation_list[1][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
@@ -204,12 +198,10 @@ class Character(object):
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[0])
-        
+
         # Saldırı süresi kontrolü
         if self.is_attacking and self.last_update - self.last_attack_time > self.attack_cooldown:
             self.is_attacking = False
-
-
 
     def update_action(self,new_action):
         if new_action != self.action:
@@ -231,6 +223,6 @@ class Character(object):
         if self.health <= 0:
             gameOverText = font.render("GAME OVER", True, (255, 255, 255))
             win.blit(gameOverText, ((self.screenWidth // 2 - gameOverText.get_width() // 2), 300))
-        
+
         if self.is_attacking:
             pygame.draw.rect(win, constants.RED, self.attack_rect, 2)
