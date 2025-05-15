@@ -41,7 +41,11 @@ class Boss:
         self.invincible = False
         self.phase_transition = False
 
-        self.phase2_speed_multiplier = 1.5
+        self.min_follow_distance = 75
+        self.follow_distance = constants.BOSS_FOLLOW_DISTANCE
+
+
+        self.phase2_speed_multiplier = 3
         self.phase2_damage_multiplier = 2
         self.dash_cooldown = 3000
         self.last_dash_time = 0
@@ -75,6 +79,9 @@ class Boss:
             "shout": load_and_scale_sheet(os.path.join(assets, "SHOUT.png"), self.original_width, self.original_height, 17, self.scale),
         }
 
+        # Atak için çarpışma dikdörtgeni
+        self.attack_rect = pygame.Rect(0, 0, 50, 50)  # Saldırı hitbox'ı
+
     def get_animation(self):
         anim_key = self.action
         if self.phase == 2 and self.action in ["idle", "run", "hurt", "attack1", "attack2", "attack3", "jump_attack", "dash"]:
@@ -107,6 +114,9 @@ class Boss:
         dx = player.x - self.x
         dy = player.y - self.y
         dist = math.hypot(dx, dy)
+
+        if dist <= self.min_follow_distance:
+            return
 
         self.dash_direction = (dx / dist, dy / dist) if dist else (0, 0)
         self.is_dashing = True
@@ -170,8 +180,9 @@ class Boss:
         dx = player.x - self.x
         dy = player.y - self.y
         dist = math.hypot(dx, dy)
-
         self.flip = dx < 0
+
+        should_move = False
 
         if dist < 100 and now - self.last_attack_time > self.attack_cooldown:
             self.choose_attack()
@@ -180,14 +191,22 @@ class Boss:
             self.last_update = now
             return
 
-        speed = constants.BOSS_SPEED * (self.phase2_speed_multiplier if self.phase == 2 else 1)
+        if (self.phase == 2) or (self.phase == 1 and dist < constants.BOSS_FOLLOW_DISTANCE):
+            if dist > self.min_follow_distance:  # Çok yakına gelmesin
+                speed = constants.BOSS_SPEED * (self.phase2_speed_multiplier if self.phase == 2 else 1)
+                self.x += speed * (dx / dist)
+                self.y += speed * (dy / dist)
+                should_move = True
+            elif now - self.last_dash_time > self.dash_cooldown:
+                self.dash_to_player(player)
+                return
 
-        if dist < constants.BOSS_FOLLOW_DISTANCE and dist > 0:
-            self.x += speed * (dx / dist)
-            self.y += speed * (dy / dist)
-            self.action = "run"
+        if self.is_dashing:
+            self.action = "dash_flame" if self.phase == 2 else "dash"
+        elif should_move:
+            self.action = "run_flame" if self.phase == 2 else "run"
         else:
-            self.action = "idle"
+            self.action = "idle_flame" if self.phase == 2 else "idle"
 
     def choose_attack(self):
         options = ["attack1", "attack2", "attack3", "jump_attack"] * (2 if self.phase == 2 else 1)
@@ -209,10 +228,8 @@ class Boss:
         flipped_sprite = pygame.transform.flip(sprite, self.flip, False)
         win.blit(flipped_sprite, (self.x - self.hitbox_offset_x * self.scale, self.y - self.hitbox_offset_y * self.scale))
 
-        health_bar_width = 100 * self.scale
-        health_bar_x = self.x + (self.width - health_bar_width) // 2
-        health_bar_y = self.y - 20
-        draw_health_bar(win, health_bar_x, health_bar_y, self.health, self.maxHealth, health_bar_width)
+
+        draw_health_bar(win, self.x - 10, self.y - 10, self.health, self.maxHealth)
 
         if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
             self.last_update = pygame.time.get_ticks()
