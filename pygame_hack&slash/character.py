@@ -210,7 +210,7 @@ class Character(object):
             self.last_update = pygame.time.get_ticks()
 
     def draw(self, win, font):
-        #pygame.draw.rect(win, constants.RED, self.rect, 1)
+        pygame.draw.rect(win, constants.RED, self.rect, 1)
         flipped_image = pygame.transform.flip(self.image, self.flip, False)
         if(self.char_type == 0):
             win.blit(flipped_image, (self.rect.x - constants.scale *constants.OFFSET_X, self.rect.y - constants.scale *constants.OFFSET_Y))

@@ -29,11 +29,6 @@ sfx_manager.play_music("menu")
 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
 #bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
 
-
-
-# Boss
-boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50)
-
 # Mermiler
 bullets = []
 
@@ -51,6 +46,13 @@ mob_animations = [animation_list, animation_list2]
 # Oyuncu
 player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, mob_animations, 0)
 #player.set_sfx_manager(sfx_manager)
+
+# Boss
+boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50,player)
+
+
+
+
 
 font = pygame.font.SysFont("comicsans", 30)
 
@@ -98,14 +100,13 @@ def redrawGameWindow():
     player.draw(win, font)
     player.update()
 
-    boss_rect = pygame.Rect(boss.x, boss.y, boss.rect.width - constants.BOSS_HITBOX_OFFSET_X * 3,
-                            boss.rect.height - constants.BOSS_HITBOX_OFFSET_Y)
-    pygame.draw.rect(win, constants.RED, boss_rect, 1)
+    # Boss'un hitbox'ını göster
+    pygame.draw.rect(win, constants.RED, boss.rect, 1)
     # print(f"Player attacking: {player.is_attacking}, Frame: {player.frame_index}, Attack frame: {player.attack_frame}, Has dealt damage: {player.has_dealt_damage}")
 
     if player.is_attacking:
         if player.frame_index == player.attack_frame and not player.has_dealt_damage:
-            if player.attack_rect.colliderect(boss_rect):
+            if player.attack_rect.colliderect(boss.rect):
                 boss.take_damage(player.attack_damage)
                 player.has_dealt_damage = True
                 print("Boss hit! Sağlık:", boss.health)
@@ -120,28 +121,44 @@ def redrawGameWindow():
 
         bullet_rect = pygame.Rect(bullet.x, bullet.y, bullet.width, bullet.height)
 
-        if bullet_rect.colliderect(boss_rect):
+        if bullet_rect.colliderect(boss.rect):
             bullets.remove(bullet)
             boss.take_damage(constants.PROJECTILE_DAMAGE)
             print("Boss hit! Sağlık:", boss.health)
             continue
 
-        # Boss saldırısı
-        if (boss.action.startswith("attack") or boss.action == "jump_attack") and boss.rect.colliderect(
-                player.rect):
-            if player.health > 0 and not boss.invincible:
-                dmg = constants.DAMAGE_BOSS_PHASE_2 if boss.phase == 2 else constants.DAMAGE_BOSS_PHASE_1
-                player.health -= dmg
-
         bullet.draw(win)
 
+    # Boss saldırısı
+    if (boss.action.startswith("attack") or boss.action == "jump_attack"):
+        # Saldırı hitbox'ını göster (debug için)
+        pygame.draw.rect(win, (255, 0, 0), boss.attack_rect, 2)
+
+        # Saldırı frame'i kontrolü
+        attack_key = boss.action
+        if "_flame" in attack_key:
+            attack_key = attack_key.replace("_flame", "")
+
+        if attack_key in boss.attack_frames and boss.frame_index in boss.attack_frames[attack_key] and not boss.has_dealt_damage:
+            # Çarpışma kontrolü
+            if boss.attack_rect.colliderect(player.rect):
+                if player.health > 0 and not boss.invincible:
+                    dmg = constants.DAMAGE_BOSS_PHASE_2 if boss.phase == 2 else constants.DAMAGE_BOSS_PHASE_1
+                    player.health -= dmg
+                    boss.has_dealt_damage = True
+                    print("Player hit! Sağlık:", player.health)
+
+    #pygame.draw.rect(win, constants.RED, boss_rect, 2)
     pygame.display.update()
 
-    if boss.action.startswith("attack") or boss.action == "jump_attack":
-        boss_rect = pygame.Rect(boss.x + 20, boss.y + 20, 80, 80)  # hasar kutusu
-        if boss_rect.colliderect(player.rect):
-            if player.health > 0:
-                player.health -= 1  # her frame 1 can
+
+    # Zehir/ alev efekti boss etrafında
+    # if boss.action.startswith("attack") or boss.action == "jump_attack":
+    #     boss_rect = pygame.Rect(boss.x + 20, boss.y + 20, 80, 80)  # hasar kutusu
+    #     pygame.draw.rect(win, constants.RED, boss_rect, 2)
+    #     if boss_rect.colliderect(player.rect):
+    #         if player.health > 0:
+    #             player.health -= 1  # her frame 1 can
 
 while run:
     clock.tick(constants.FPS)
@@ -163,6 +180,9 @@ while run:
 
     keys = pygame.key.get_pressed()
     player.move(keys)
+
+    # Player'ın boss içerisine girmesini engelle
+    boss.collision_with_player(player)
 
     if keys[pygame.K_v] and len(bullets) < 1:
 

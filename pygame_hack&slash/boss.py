@@ -8,7 +8,7 @@ from functions import load_and_scale_sheet, draw_health_bar
 
 
 class Boss:
-    def __init__(self, x, y):
+    def __init__(self, x, y,player):
         self.scale = constants.BOSS_SCALE
         self.original_width = constants.BOSS_FRAME_WIDTH
         self.original_height = constants.BOSS_FRAME_HEIGHT
@@ -18,16 +18,38 @@ class Boss:
         # Hitbox için offset değerleri
         self.hitbox_offset_x = constants.BOSS_HITBOX_OFFSET_X * self.scale
         self.hitbox_offset_y = constants.BOSS_HITBOX_OFFSET_Y * self.scale
-        self.hitbox_width = constants.BOSS_FRAME_WIDTH * self.scale - self.hitbox_offset_x * self.scale
-        self.hitbox_height = constants.BOSS_FRAME_HEIGHT * self.scale - self.hitbox_offset_y * self.scale
+
+        # Hitbox boyutlarını daha küçük ayarla - sadece karakterin çiziminin bulunduğu kısmı kapsa
+        self.hitbox_width = int(self.width * 0.4)  # Frame genişliğinin %40'ı
+        self.hitbox_height = int(self.height * 0.5)  # Frame yüksekliğinin %50'si
 
         # Pozisyon ayarları
         self.x = x - self.width // 2
         self.y = y - self.height // 2
-        self.rect = pygame.Rect(self.x + self.hitbox_offset_x,
-                                self.y + self.hitbox_offset_y,
-                                self.hitbox_width,
-                                self.hitbox_height)
+
+        # Hitbox'u karakterin gövdesine hizala
+        self.rect = pygame.Rect(
+            self.x + (self.width - self.hitbox_width) // 2,  # Yatay olarak ortala
+            self.y + (self.height - self.hitbox_height) // 3,  # Biraz daha yukarıda olsun
+            self.hitbox_width,
+            self.hitbox_height
+        )
+
+        # Atak için çarpışma dikdörtgeni
+        self.attack_width = 60  # Saldırı genişliği
+        self.attack_height = 100  # Saldırı yüksekliği
+        self.attack_rect = pygame.Rect(0, 0, self.attack_width, self.attack_height)  # Saldırı hitbox'ı
+
+        # Saldırı frame'leri - her saldırı tipi için hangi frame'lerde hasar verileceği
+        self.attack_frames = {
+            "attack1": [3, 4],  # attack1 animasyonunda 3. ve 4. frame'lerde hasar ver
+            "attack2": [2, 3],  # attack2 animasyonunda 2. ve 3. frame'lerde hasar ver
+            "attack3": [3, 4, 5],  # attack3 animasyonunda 3., 4. ve 5. frame'lerde hasar ver
+            "jump_attack": [6, 7, 8]  # jump_attack animasyonunda 6., 7. ve 8. frame'lerde hasar ver
+        }
+
+        # Hasar verme kontrolü için
+        self.has_dealt_damage = False
 
         self.idleCount = 0
         self.frame_index = 0
@@ -41,7 +63,7 @@ class Boss:
         self.invincible = False
         self.phase_transition = False
 
-        self.min_follow_distance = 75
+        self.min_follow_distance = self.rect.width * 1.1 - player.rect.width
         self.follow_distance = constants.BOSS_FOLLOW_DISTANCE
 
 
@@ -79,8 +101,6 @@ class Boss:
             "shout": load_and_scale_sheet(os.path.join(assets, "SHOUT.png"), self.original_width, self.original_height, 17, self.scale),
         }
 
-        # Atak için çarpışma dikdörtgeni
-        self.attack_rect = pygame.Rect(0, 0, 50, 50)  # Saldırı hitbox'ı
 
     def get_animation(self):
         anim_key = self.action
@@ -111,14 +131,23 @@ class Boss:
         if self.is_dashing:
             return
 
-        dx = player.x - self.x
-        dy = player.y - self.y
+        # Yatay mesafeyi hesapla - player'in sol kenarı ile boss'un sağ kenarı arasındaki mesafe
+        dx = player.rect.left - self.rect.right
+
+        # Dikey mesafeyi hesapla - player'in tabanı ile boss'un tabanı arasındaki mesafe
+        # Tabanları hizalamak için
+        dy = player.rect.bottom - self.rect.bottom
+
         dist = math.hypot(dx, dy)
 
         if dist <= self.min_follow_distance:
             return
 
-        self.dash_direction = (dx / dist, dy / dist) if dist else (0, 0)
+        # Dash yönünü belirle - ağırlıklı olarak yatay hareket, az dikey hareket
+        dash_x = dx / dist
+        dash_y = dy / dist * 0.5  # Dikey hareketi sınırla
+
+        self.dash_direction = (dash_x, dash_y)
         self.is_dashing = True
         self.dash_start_time = pygame.time.get_ticks()
         self.action = "dash_flame" if self.phase == 2 else "dash"
@@ -127,8 +156,33 @@ class Boss:
 
     def update(self, player):
         now = pygame.time.get_ticks()
-        self.rect.x = self.x + self.hitbox_offset_x
-        self.rect.y = self.y + self.hitbox_offset_y
+        # Hitbox'u karakterin gövdesine hizala
+        self.rect.x = self.x + (self.width - self.hitbox_width) // 2
+        self.rect.y = self.y + (self.height - self.hitbox_height) // 3  # Biraz daha yukarıda olsun
+
+        # Saldırı hitbox'ını güncelle - self.rect'in bitişinden itibaren
+        if not self.flip:  # Sağa bakma durumu
+            self.attack_rect.x = self.rect.right  # self.rect'in sağ kenarından başla
+            self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
+        else:  # Sola bakma durumu
+            self.attack_rect.x = self.rect.left - self.attack_width  # self.rect'in sol kenarından başla
+            self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
+
+        self.attack_rect.width = self.attack_width
+        self.attack_rect.height = self.attack_height
+
+        # Saldırı durumunda ve belirli frame'lerde hasar verme kontrolü
+        if self.action.startswith("attack") or self.action == "jump_attack" or self.action == "jump_attack_flame":
+            # Flame ekini kaldır
+            attack_key = self.action
+            if "_flame" in attack_key:
+                attack_key = attack_key.replace("_flame", "")
+
+            # Frame değiştiğinde hasar verme durumunu kontrol et
+            if attack_key in self.attack_frames:
+                # Debug için frame bilgisini yazdır
+                if self.frame_index in self.attack_frames[attack_key]:
+                    print(f"Boss attack frame: {self.frame_index} in {attack_key} (Action: {self.action})")
 
         if self.health <= 0:
             self.action = "death"
@@ -162,9 +216,25 @@ class Boss:
 
         if self.action.startswith("attack") or self.action == "jump_attack":
             if self.frame_index < len(self.get_animation()):
+                # Saldırı sırasında hitbox'ı aktif et
+                if not self.flip:  # Sağa bakma durumu
+                    self.attack_rect.x = self.rect.right  # self.rect'in sağ kenarından başla
+                    self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
+                else:  # Sola bakma durumu
+                    self.attack_rect.x = self.rect.left - self.attack_width  # self.rect'in sol kenarından başla
+                    self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
+
+                # Yeni frame'e geçtiğimizde hasar verme durumunu sıfırla
+                attack_key = self.action
+                if "_flame" in attack_key:
+                    attack_key = attack_key.replace("_flame", "")
+
+                if attack_key in self.attack_frames and self.frame_index in self.attack_frames[attack_key]:
+                    self.has_dealt_damage = False
                 return
             else:
                 self.action = "idle"
+                self.has_dealt_damage = False
 
         if self.action in ["hurt", "hurt_flame"]:
             if self.frame_index < len(self.get_animation()):
@@ -177,10 +247,15 @@ class Boss:
                 self.dash_to_player(player)
                 return
 
-        dx = player.x - self.x
-        dy = player.y - self.y
+        # Player'a göre konumu hesapla
+        # Player'in merkezi ile boss'un merkezi arasındaki mesafe
+        dx = player.rect.centerx - self.rect.centerx
+        dy = player.rect.centery - self.rect.centery
         dist = math.hypot(dx, dy)
-        self.flip = dx < 0
+
+
+        # Player'in solunda mı sağında mı olduğunu belirle
+        self.flip = dx < 0  # Player solda ise sola dön
 
         should_move = False
 
@@ -194,8 +269,19 @@ class Boss:
         if (self.phase == 2) or (self.phase == 1 and dist < constants.BOSS_FOLLOW_DISTANCE):
             if dist > self.min_follow_distance:  # Çok yakına gelmesin
                 speed = constants.BOSS_SPEED * (self.phase2_speed_multiplier if self.phase == 2 else 1)
+
+                # Sadece yatay hareket et - player'in sağına veya soluna git
                 self.x += speed * (dx / dist)
-                self.y += speed * (dy / dist)
+
+                # Dikey olarak player ile aynı taban seviyesinde ol
+                # Player ve boss'un rect'lerinin tabanını hizala
+                target_y = player.rect.bottom - self.rect.height  # Player'in tabanı ile boss'un tabanını hizala
+                if abs(self.rect.bottom - player.rect.bottom) > 5:  # Belirli bir tolerans ile
+                    if self.rect.bottom < player.rect.bottom:
+                        self.y += speed
+                    else:
+                        self.y -= speed
+
                 should_move = True
             elif now - self.last_dash_time > self.dash_cooldown:
                 self.dash_to_player(player)
@@ -211,6 +297,44 @@ class Boss:
     def choose_attack(self):
         options = ["attack1", "attack2", "attack3", "jump_attack"] * (2 if self.phase == 2 else 1)
         self.action = random.choice(options)
+        self.has_dealt_damage = False  # Yeni saldırı başladığında hasar verme durumunu sıfırla
+
+    def collision_with_player(self, player):
+        """
+        Player'ın boss içerisine girmesini engeller.
+        Eğer çarpışma varsa, player'ı dışarı iter.
+        """
+        # Boss ve player hitbox'ları çarpışıyorsa
+        if self.rect.colliderect(player.rect):
+            # Çarpışma yönünü belirle
+            dx = player.rect.centerx - self.rect.centerx
+            dy = player.rect.centery - self.rect.centery
+
+            # Mesafeyi normalize et
+            dist = math.hypot(dx, dy)
+            if dist == 0:  # Sıfıra bölme hatasını önle
+                dx, dy = 1, 0
+            else:
+                dx, dy = dx/dist, dy/dist
+
+            # Player'ı dışarı it - boss'un hareket hızından daha hızlı
+            push_strength = constants.BOSS_SPEED * 2
+
+            # Player'ın pozisyonunu güncelle
+            player.x += dx * push_strength
+            player.y += dy * push_strength
+
+            # Ekran sınırlarını kontrol et
+            player.x = max(0, min(player.x, constants.screenWidth - player.width))
+            player.y = max(0, min(player.y, constants.screenHeight - player.height))
+
+            # Player'ın rect'ini güncelle
+            player.rect.x = player.x
+            player.rect.y = player.y
+
+            return True  # Çarpışma var
+
+        return False  # Çarpışma yok
 
     def draw(self, win):
         animation_cooldown = constants.BOSS_ANIMATION_COOLDOWN
@@ -226,11 +350,17 @@ class Boss:
 
         sprite = frames[self.frame_index]
         flipped_sprite = pygame.transform.flip(sprite, self.flip, False)
-        win.blit(flipped_sprite, (self.x - self.hitbox_offset_x * self.scale, self.y - self.hitbox_offset_y * self.scale))
 
+        # Sprite'ı çiz - frame boyutları değişmeden
+        win.blit(flipped_sprite, (self.x - constants.BOSS_HITBOX_OFFSET_X * self.scale, self.y - constants.BOSS_HITBOX_OFFSET_Y * self.scale))
+        pygame.draw.rect(win, constants.BLUE, self.rect, 2)
 
         draw_health_bar(win, self.x - 10, self.y - 10, self.health, self.maxHealth)
 
         if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
             self.last_update = pygame.time.get_ticks()
             self.frame_index += 1
+        pygame.draw.rect(win, constants.RED, self.rect, 2)
+        # Saldırı hitbox'ını göster
+        if self.action.startswith("attack") or self.action == "jump_attack":
+            pygame.draw.rect(win, constants.RED, self.attack_rect, 2)
