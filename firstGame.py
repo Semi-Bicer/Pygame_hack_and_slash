@@ -1,6 +1,5 @@
 ### firstGame.py
 import pygame
-import os
 import constants
 from character import Character
 from boss import Boss
@@ -45,11 +44,11 @@ def draw_start_menu(win, constants, fonts):
 
     return pygame.Rect(btn_x, btn_y, btn_width, btn_height)
 
-# Pencere
+
 win = pygame.display.set_mode((constants.screenWidth, constants.screenHeight))
 pygame.display.set_caption("Boss Fight")
 
-# Ses
+
 sfx_manager = SoundManager()
 sfx_manager.play_music("menu")
 
@@ -57,37 +56,20 @@ sfx_manager.play_music("menu")
 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
 #bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
 
-# Mermiler
+
 bullets = []
 
-attack = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "ATTACK 1.png"),96,84,7)
-dash = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "DASH.png"),95,84,8)
-runRight = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "RUN.png"),96,84,16)
-walkRight = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "WALK.png"),96,84,12)
-charIdle = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "IDLE.png"),96,84,10)
-shuriken = load_single_image(os.path.join("assets", "Player", "shuriken.png"), constants.scale)
-
-animation_list = [charIdle, walkRight, runRight, dash, attack]
-animation_list2 = [shuriken, shuriken]
-
-mob_animations = [animation_list, animation_list2]
-
 # Oyuncu
-player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, mob_animations, 0)
-#player.set_sfx_manager(sfx_manager)
+player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)
+player.set_sfx_manager(sfx_manager)
 
 # Boss
 boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50, player, sfx_manager)
 
-
-
-
-
 font = pygame.font.SysFont("comicsans", 30)
 
-
 class Projectile:
-    def __init__(self, x, y, width, height, facing, vel):
+    def __init__(self, x, y, width, height, facing, vel, sprite=None):
         self.x = x
         self.y = y
         self.width = width
@@ -95,7 +77,8 @@ class Projectile:
         self.vel = vel
         self.facing = facing
         self.frameCount = 0
-        self.sprites = shuriken
+        self.sprite = sprite
+        self.sprites = [sprite] if sprite else []
 
     def draw(self, win):
         # Check if sprites list is not empty
@@ -126,7 +109,6 @@ run = True
 game_active = False
 start_button = None  # Start butonu için rect
 
-
 def redrawGameWindow():
     bg.update()
     bg.draw(win)
@@ -139,14 +121,40 @@ def redrawGameWindow():
 
     # Boss'un hitbox'ını göster
     pygame.draw.rect(win, constants.RED, boss.rect, 1)
-    # print(f"Player attacking: {player.is_attacking}, Frame: {player.frame_index}, Attack frame: {player.attack_frame}, Has dealt damage: {player.has_dealt_damage}")
 
+    # Normal saldırı hasar kontrolü
     if player.is_attacking:
+        # Debug için attack_rect'i göster
+        pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
+
+        # Hasar verme frame'inde ve henüz hasar verilmemişse
         if player.frame_index == player.attack_frame and not player.has_dealt_damage:
+            print(f"Checking attack collision, frame: {player.frame_index}")
+            # Çarpışma kontrolü
             if player.attack_rect.colliderect(boss.rect):
-                boss.take_damage(player.attack_damage)
+                # Combo sayısına göre artan hasar
+                combo_damage = player.attack_damage * (1 + player.combo_count * 0.2)  # Her combo %20 daha fazla hasar
+                boss.take_damage(combo_damage)
                 player.has_dealt_damage = True
-                print("Boss hit! Sağlık:", boss.health)
+                print(f"Boss hit! Combo {player.combo_count+1}, Hasar: {combo_damage}, Sağlık: {boss.health}")
+            else:
+                print("Attack missed! No collision with boss.")
+
+    # Air attack hasar kontrolü
+    elif player.is_air_attacking:
+        # Debug için attack_rect'i göster
+        pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
+
+        # Hasar verme frame'inde ve henüz hasar verilmemişse
+        if player.frame_index == player.air_attack_frame and not player.has_dealt_damage:
+            print(f"Checking air attack collision, frame: {player.frame_index}")
+            # Çarpışma kontrolü
+            if player.attack_rect.colliderect(boss.rect):
+                boss.take_damage(player.air_attack_damage)
+                player.has_dealt_damage = True
+                print(f"Boss air attack hit! Hasar: {player.air_attack_damage}, Sağlık: {boss.health}")
+            else:
+                print("Air attack missed! No collision with boss.")
 
     for bullet in bullets[:]:
         bullet.x += (bullet.vel * bullet.facing)
@@ -188,15 +196,6 @@ def redrawGameWindow():
     #pygame.draw.rect(win, constants.RED, boss_rect, 2)
     pygame.display.update()
 
-
-    # Zehir/ alev efekti boss etrafında
-    # if boss.action.startswith("attack") or boss.action == "jump_attack":
-    #     boss_rect = pygame.Rect(boss.x + 20, boss.y + 20, 80, 80)  # hasar kutusu
-    #     pygame.draw.rect(win, constants.RED, boss_rect, 2)
-    #     if boss_rect.colliderect(player.rect):
-    #         if player.health > 0:
-    #             player.health -= 1  # her frame 1 can
-
 while run:
     clock.tick(constants.FPS)
 
@@ -206,7 +205,6 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Sol tık
                 if game_active:
-                    # Oyun aktifse ve sol tık yapıldıysa "attack1" sesini çal
                     sfx_manager.play_sound("attack1")
                 elif start_button and start_button.collidepoint(pygame.mouse.get_pos()):
                     # Start butonuna tıklandı mı kontrol et
@@ -227,24 +225,9 @@ while run:
     # Player'ın boss içerisine girmesini engelle
     boss.collision_with_player(player)
 
-    if keys[pygame.K_v] and len(bullets) < 1:
-
-        facing = -1 if player.leftIdle or player.left else 1
-        # Check if shuriken list is not empty before accessing elements
-        if shuriken and len(shuriken) > 0:
-            w = shuriken[0].get_width()
-            h = shuriken[0].get_height()
-            bx = player.x + player.width if facing == 1 else player.x - w
-            by = player.y + player.height // 2 - h // 2
-            bullets.append(Projectile(bx, by, w, h, facing, 10))
-        else:
-            print("Warning: shuriken list is empty. Cannot create projectile.")
-            # Use default values if shuriken is not available
-            w, h = 20, 20  # Default size
-            bx = player.x + player.width if facing == 1 else player.x - w
-            by = player.y + player.height // 2 - h // 2
-            bullets.append(Projectile(bx, by, w, h, facing, 10))
-
+    # V tuşuna basıldığında shuriken fırlat
+    if keys[pygame.K_v]:
+        player.throw_shuriken(bullets, Projectile)
 
 
     redrawGameWindow()
