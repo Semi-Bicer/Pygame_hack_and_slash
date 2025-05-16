@@ -77,7 +77,7 @@ player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenW
 #player.set_sfx_manager(sfx_manager)
 
 # Boss
-boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50,player)
+boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50, player, sfx_manager)
 
 
 
@@ -203,12 +203,16 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        if not game_active and event.type == pygame.MOUSEBUTTONDOWN:
-            # Start butonuna tıklandı mı kontrol et
-            if start_button.collidepoint(pygame.mouse.get_pos()):
-                game_active = True
-                sfx_manager.stop_music(fade_ms=500)
-                sfx_manager.play_music("battle", fade_ms=1000)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Sol tık
+                if game_active:
+                    # Oyun aktifse ve sol tık yapıldıysa "attack1" sesini çal
+                    sfx_manager.play_sound("attack1")
+                elif start_button and start_button.collidepoint(pygame.mouse.get_pos()):
+                    # Start butonuna tıklandı mı kontrol et
+                    game_active = True
+                    sfx_manager.stop_music(fade_ms=500)
+                    sfx_manager.play_music("battle", fade_ms=1000)
 
     if not game_active:
         # Start menüsünü çiz ve buton rect'ini al
@@ -241,7 +245,7 @@ while run:
             by = player.y + player.height // 2 - h // 2
             bullets.append(Projectile(bx, by, w, h, facing, 10))
 
-    
+
 
     redrawGameWindow()
 
