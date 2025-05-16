@@ -19,6 +19,7 @@ class Character(object):
         self.dashMultiplier = constants.CHAR_DASH_MULTIPLIER
         self.dashVel = constants.CHAR_DASH_SPEED * self.dashMultiplier
         self.isDashing = False
+        self.running = False  # Koşma durumu
         self.dash_start_time = 0
         self.last_dash_time = 0
         self.dash_cooldown = constants.CHAR_DASH_COOLDOWN
@@ -59,7 +60,7 @@ class Character(object):
         self.char_type = char_type
 
         self.animation_list = mob_animations[char_type]  # idle, walk, dash, attack
-        self.action = 0  # 0 idle , 1 walk, 2 run, 3 dash, 4 attack 
+        self.action = 0  # 0 idle , 1 walk, 2 run, 3 dash, 4 attack
         self.running = False
         self.walking = False
         self.image = self.animation_list[self.action][self.frame_index]  # charIdle
@@ -148,7 +149,7 @@ class Character(object):
                 # if self.sfx_manager: self.sfx_manager.play_sound("attack")
 
 
-        
+
 
     def update(self):
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
@@ -173,7 +174,7 @@ class Character(object):
 
         if self.is_attacking: # attack animation
             #print("attacking")
-            self.image = self.animation_list[4][self.frame_index]
+            self.image = self.animation_list[4][self.frame_index]  
             if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
                 print("attack frame: ", self.frame_index)
                 self.last_update = pygame.time.get_ticks()
@@ -187,36 +188,36 @@ class Character(object):
         elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
             if self.isDashing:
                 # print("dashing")
-                self.image = self.animation_list[3][self.frame_index]
+                self.image = self.animation_list[3][self.frame_index]  
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[3])
             elif self.running:
-                self.image = self.animation_list[2][self.frame_index]
+                self.image = self.animation_list[2][self.frame_index]  
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[2])
-                
-            else:    
+
+            else:
                 if self.left:
-                    self.image = self.animation_list[1][self.frame_index]
+                    self.image = self.animation_list[1][self.frame_index]  
                     if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                         self.last_update = pygame.time.get_ticks()
                         self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
                 else:
-                    self.image = self.animation_list[1][self.frame_index]
+                    self.image = self.animation_list[1][self.frame_index]  
                     if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                         self.last_update = pygame.time.get_ticks()
                         self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
         else: # idle animation
             #print("idle")
             if self.leftIdle:
-                self.image = self.animation_list[0][self.frame_index]
+                self.image = self.animation_list[0][self.frame_index]  
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[0])
             else:
-                self.image = self.animation_list[0][self.frame_index]
+                self.image = self.animation_list[0][self.frame_index]  
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[0])
