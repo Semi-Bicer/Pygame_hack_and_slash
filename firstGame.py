@@ -9,8 +9,6 @@ from sfx import SoundManager
 
 pygame.init()
 
-
-
 win = pygame.display.set_mode((constants.screenWidth, constants.screenHeight))
 pygame.display.set_caption("Boss Fight")
 
@@ -21,7 +19,6 @@ sfx_manager.play_music("menu")
 # Arkaplan
 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
 #bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
-
 
 bullets = []
 
@@ -176,6 +173,7 @@ while run:
                     # Start butonuna tıklandı mı kontrol et
                     game_active = True
                     sfx_manager.stop_music(fade_ms=500)
+                    sfx_manager.set_volume(0.5)
                     sfx_manager.play_music("battle", fade_ms=1000)
 
     if not game_active:
@@ -186,16 +184,6 @@ while run:
 
     keys = pygame.key.get_pressed()
     clicks = pygame.mouse.get_pressed()
-
-    # Ölüm durumunda R tuşu ile oyunu yeniden başlat
-    if player.death_animation_finished and keys[pygame.K_r]:
-        # Oyunu yeniden başlat
-        player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)
-        player.set_sfx_manager(sfx_manager)
-        boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50, player, sfx_manager)
-        bullets = []
-        continue
-
     player.move(keys, clicks)
 
     # Player'ın boss içerisine girmesini engelle

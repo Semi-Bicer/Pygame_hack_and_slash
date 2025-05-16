@@ -84,10 +84,11 @@ def draw_start_menu(win, constants, fonts):
     btn_text = fonts["medium"].render("Savaşa Başla", True, constants.WHITE)
     win.blit(btn_text, (constants.screenWidth // 2 - btn_text.get_width() // 2, btn_y + btn_height // 2 - btn_text.get_height() // 2))
 
-    info_text = fonts["small"].render("WASD: Hareket | F: Saldırı | V: Shuriken | L-Shift: Dash", True, (150, 150, 150))
+    info_text = fonts["small"].render("WASD: Hareket | LMB: Saldırı | V: Shuriken | L-Shift: Dash", True, (150, 150, 150))
     win.blit(info_text, (constants.screenWidth // 2 - info_text.get_width() // 2, constants.screenHeight - 50))
 
     pygame.draw.polygon(win, (80, 80, 80), [(50, 300), (100, 200), (150, 300)])
     pygame.draw.polygon(win, (80, 80, 80), [(constants.screenWidth - 50, 300), (constants.screenWidth - 100, 200), (constants.screenWidth - 150, 300)])
 
     return pygame.Rect(btn_x, btn_y, btn_width, btn_height)
+
