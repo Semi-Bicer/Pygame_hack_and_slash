@@ -8,7 +8,7 @@ from functions import load_and_scale_sheet, draw_health_bar
 
 
 class Boss:
-    def __init__(self, x, y,player):
+    def __init__(self, x, y, player, sfx_manager=None):
         self.scale = constants.BOSS_SCALE
         self.original_width = constants.BOSS_FRAME_WIDTH
         self.original_height = constants.BOSS_FRAME_HEIGHT
@@ -50,6 +50,9 @@ class Boss:
 
         # Hasar verme kontrolü için
         self.has_dealt_damage = False
+
+        # Ses yöneticisi
+        self.sfx_manager = sfx_manager
 
         self.idleCount = 0
         self.frame_index = 0
@@ -298,6 +301,10 @@ class Boss:
         options = ["attack1", "attack2", "attack3", "jump_attack"] * (2 if self.phase == 2 else 1)
         self.action = random.choice(options)
         self.has_dealt_damage = False  # Yeni saldırı başladığında hasar verme durumunu sıfırla
+
+        # Eğer attack1 seçildiyse ve ses yöneticisi varsa bossAttack1 sesini çal
+        if self.action == "attack1" and self.sfx_manager:
+            self.sfx_manager.play_sound("bossAttack1")
 
     def collision_with_player(self, player):
         # Boss ve player hitbox'ları çarpışıyorsa
