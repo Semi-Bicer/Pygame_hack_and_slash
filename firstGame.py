@@ -113,10 +113,18 @@ class Projectile:
         win.blit(sprite, (self.x, self.y))
         self.frameCount = (self.frameCount + 1) % len(self.sprites)
 
+# Fontlar
+fonts = {
+    "small": pygame.font.Font(None, 24),
+    "medium": pygame.font.Font(None, 36),
+    "large": pygame.font.Font(None, 72)
+}
+
 # Oyun Değişkenleri
 clock = pygame.time.Clock()
 run = True
 game_active = False
+start_button = None  # Start butonu için rect
 
 
 def redrawGameWindow():
@@ -196,14 +204,15 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if not game_active and event.type == pygame.MOUSEBUTTONDOWN:
-            if draw_start_button().collidepoint(pygame.mouse.get_pos()):
+            # Start butonuna tıklandı mı kontrol et
+            if start_button.collidepoint(pygame.mouse.get_pos()):
                 game_active = True
                 sfx_manager.stop_music(fade_ms=500)
                 sfx_manager.play_music("battle", fade_ms=1000)
 
     if not game_active:
-        win.fill(constants.BLACK)
-        draw_start_button()
+        # Start menüsünü çiz ve buton rect'ini al
+        start_button = draw_start_menu(win, constants, fonts)
         pygame.display.update()
         continue
 
