@@ -130,6 +130,10 @@ class Boss:
                 self.frame_index = 0
                 self.last_update = pygame.time.get_ticks()
 
+                # Shout animasyonu başladığında ses çal
+                if self.sfx_manager:
+                    self.sfx_manager.play_sound("shout")
+
     def dash_to_player(self, player):
         if self.is_dashing:
             return
