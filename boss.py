@@ -300,10 +300,6 @@ class Boss:
         self.has_dealt_damage = False  # Yeni saldırı başladığında hasar verme durumunu sıfırla
 
     def collision_with_player(self, player):
-        """
-        Player'ın boss içerisine girmesini engeller.
-        Eğer çarpışma varsa, player'ı dışarı iter.
-        """
         # Boss ve player hitbox'ları çarpışıyorsa
         if self.rect.colliderect(player.rect):
             # Çarpışma yönünü belirle
@@ -311,7 +307,7 @@ class Boss:
             dy = player.rect.centery - self.rect.centery
 
             # Mesafeyi normalize et
-            dist = math.hypot(dx, dy)
+            dist = math.hypot(dx, dy) # hipotenüs
             if dist == 0:  # Sıfıra bölme hatasını önle
                 dx, dy = 1, 0
             else:

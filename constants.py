@@ -6,7 +6,7 @@ FPS = 60
 screenWidth = 1000
 screenHeight = 800
 scale = 2
-dash_delay = 2
+
 
 # Font ve ses yolları
 FONT_PATH = os.path.join("assets", "fonts", "pixel.ttf")
@@ -25,12 +25,14 @@ CHAR_X                = 500
 CHAR_Y                = 700
 CHAR_HEALTH           = 100
 CHAR_MAX_HEALTH       = 100
-CHAR_SPEED            = 5
-CHAR_DASH_SPEED       = 15.0
-CHAR_DASH_MULTIPLIER  = 10
-CHAR_ANIM_COOLDOWN_MS = 100
-CHAR_ATTACK_COOLDOWN = 1200  # ms cinsinden saldırı bekleme süresi
-CHAR_ATTACK_FRAME_DURATION = 100  # ms cinsinden saldırı süresi
+CHAR_SPEED            = 8
+CHAR_DASH_SPEED       = 16.0
+CHAR_DASH_MULTIPLIER  = 1
+CHAR_DASH_DELAY       = 480
+CHAR_DASH_COOLDOWN   = 3000  # ms cinsinden dash bekleme süresi
+CHAR_ANIM_COOLDOWN_MS = 60
+CHAR_ATTACK_COOLDOWN = 500  # ms cinsinden saldırı bekleme süresi
+CHAR_ATTACK_FRAME_DURATION = 50  # ms cinsinden saldırı süresi
 CHAR_ATTACK_DAMAGE = 20
 CHAR_ATTACK_FRAME = 4
 
@@ -42,7 +44,7 @@ BOSS_START_X          = 300
 BOSS_START_Y          = 300
 BOSS_SPEED            = 2.0
 BOSS_FOLLOW_DISTANCE  = 800
-BOSS_HEALTH           = 100
+BOSS_HEALTH           = 300
 BOSS_SCALE            = 2  # 1.5 kat büyük
 BOSS_HITBOX_OFFSET_Y  = 25  # Hitbox ayarı için
 BOSS_HITBOX_OFFSET_X  = 10
@@ -52,7 +54,7 @@ DAMAGE_BOSS_PHASE_2 = 2
 
 # Projeksil sabitleri
 PROJECTILE_VELOCITY = 10
-PROJECTILE_DAMAGE = 10
+PROJECTILE_DAMAGE = 2
 
 # Animasyon sabitleri
 ANIMATION_COOLDOWN = 100

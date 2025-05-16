@@ -34,11 +34,12 @@ bullets = []
 
 attack = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "ATTACK 1.png"),96,84,7)
 dash = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "DASH.png"),95,84,8)
+runRight = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "RUN.png"),96,84,16)
 walkRight = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "WALK.png"),96,84,12)
 charIdle = load_and_scale_sheet(os.path.join("assets", "Player", "Sprites", "IDLE.png"),96,84,10)
 shuriken = load_single_image(os.path.join("assets", "Player", "shuriken.png"), constants.scale)
 
-animation_list = [charIdle, walkRight, dash, attack]
+animation_list = [charIdle, walkRight, runRight, dash, attack]
 animation_list2 = [shuriken, shuriken]
 
 mob_animations = [animation_list, animation_list2]
@@ -179,7 +180,8 @@ while run:
         continue
 
     keys = pygame.key.get_pressed()
-    player.move(keys)
+    clicks = pygame.mouse.get_pressed()
+    player.move(keys, clicks)
 
     # Player'ın boss içerisine girmesini engelle
     boss.collision_with_player(player)
@@ -202,8 +204,7 @@ while run:
             by = player.y + player.height // 2 - h // 2
             bullets.append(Projectile(bx, by, w, h, facing, 10))
 
-    if keys[pygame.K_SPACE] and player.health > 0:
-        pygame.time.delay(100)
+    
 
     redrawGameWindow()
 

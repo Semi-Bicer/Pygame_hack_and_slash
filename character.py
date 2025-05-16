@@ -16,9 +16,13 @@ class Character(object):
 
         # Hareket ve hız
         self.vel = constants.CHAR_SPEED
-        self.dashVel = constants.CHAR_DASH_SPEED
+        self.dashMultiplier = constants.CHAR_DASH_MULTIPLIER
+        self.dashVel = constants.CHAR_DASH_SPEED * self.dashMultiplier
         self.isDashing = False
         self.dash_start_time = 0
+        self.last_dash_time = 0
+        self.dash_cooldown = constants.CHAR_DASH_COOLDOWN
+        self.can_dash = True
 
         # Can ve sağlık
         self.health = constants.CHAR_HEALTH
@@ -54,9 +58,9 @@ class Character(object):
         # Karakter tipi (render offset vs.)
         self.char_type = char_type
 
-        self.dashMultiplier = constants.CHAR_DASH_MULTIPLIER
         self.animation_list = mob_animations[char_type]  # idle, walk, dash, attack
-        self.action = 0  # 0 idle , 1 run, 2 dash, 3 attack
+        self.action = 0  # 0 idle , 1 walk, 2 run, 3 dash, 4 attack 
+        self.running = False
         self.walking = False
         self.image = self.animation_list[self.action][self.frame_index]  # charIdle
 
@@ -80,7 +84,7 @@ class Character(object):
     def set_sfx_manager(self, sfx_manager):
         self.sfx_manager = sfx_manager
 
-    def move(self, keys):
+    def move(self, keys, clicks):
         self.walking = False
 
         self.horizontal = int(keys[pygame.K_d]) - int(keys[pygame.K_a])
@@ -95,7 +99,7 @@ class Character(object):
             self.x += self.horizontal * self.vel
             self.y += self.vertical * self.vel
 
-        # Hangi yöne baktığını belirle
+        # Character'in yönü
         if self.horizontal < 0:
             self.left = True
             self.flip = True
@@ -103,9 +107,23 @@ class Character(object):
             self.left = False
             self.flip = False
 
-        # Dash movement
         if keys[pygame.K_LSHIFT]:
+            self.running = True
+        else:
+            self.running = False
+
+        # Dash cooldown kontrolü
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_dash_time >= self.dash_cooldown:
+            self.can_dash = True
+
+        # Dash movement
+        if keys[pygame.K_SPACE] and self.can_dash and not self.isDashing:
             self.isDashing = True
+            self.can_dash = False
+            self.last_dash_time = current_time # Cooldown için kullanılıyor
+            self.dash_start_time = current_time # Dash süresi için kullanılıyor
+            print("Dash kullanıldı! Cooldown başladı.")
 
         # Apply dash if active
         if self.isDashing:
@@ -117,12 +135,12 @@ class Character(object):
                 self.y -= self.dashVel
             if keys[pygame.K_s]:
                 self.y += self.dashVel
-            if self.last_update - self.dash_start_time > constants.dash_delay:
+            # Dash süresi kontrolü (dash_delay kadar sürer)
+            if current_time - self.dash_start_time > constants.CHAR_DASH_DELAY:
                 self.isDashing = False
-                self.dash_start_time = self.last_update
 
 
-        if keys[pygame.K_f]:
+        if clicks[0]: # left mouse click
             if not self.is_attacking and self.last_update - self.last_attack_time > self.attack_cooldown:
                 self.is_attacking = True
                 self.last_attack_time = self.last_update
@@ -130,9 +148,7 @@ class Character(object):
                 # if self.sfx_manager: self.sfx_manager.play_sound("attack")
 
 
-        # Take damage with space key
-        if keys[pygame.K_SPACE] and self.health > 0:
-            self.health -= 10
+        
 
     def update(self):
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
@@ -157,11 +173,11 @@ class Character(object):
 
         if self.is_attacking: # attack animation
             #print("attacking")
-            self.image = self.animation_list[3][self.frame_index]
+            self.image = self.animation_list[4][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
                 print("attack frame: ", self.frame_index)
                 self.last_update = pygame.time.get_ticks()
-                self.frame_index = (self.frame_index + 1) % len(self.animation_list[3])
+                self.frame_index = (self.frame_index + 1) % len(self.animation_list[4])
 
                 if self.frame_index == self.attack_frame:
                     self.has_dealt_damage = False # after attack frame damage dealt off
@@ -171,21 +187,27 @@ class Character(object):
         elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
             if self.isDashing:
                 # print("dashing")
+                self.image = self.animation_list[3][self.frame_index]
+                if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                    self.last_update = pygame.time.get_ticks()
+                    self.frame_index = (self.frame_index + 1) % len(self.animation_list[3])
+            elif self.running:
                 self.image = self.animation_list[2][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[2])
-
-            elif self.left:
-                self.image = self.animation_list[1][self.frame_index]
-                if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
-                    self.last_update = pygame.time.get_ticks()
-                    self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
-            else:
-                self.image = self.animation_list[1][self.frame_index]
-                if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
-                    self.last_update = pygame.time.get_ticks()
-                    self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
+                
+            else:    
+                if self.left:
+                    self.image = self.animation_list[1][self.frame_index]
+                    if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                        self.last_update = pygame.time.get_ticks()
+                        self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
+                else:
+                    self.image = self.animation_list[1][self.frame_index]
+                    if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                        self.last_update = pygame.time.get_ticks()
+                        self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
         else: # idle animation
             #print("idle")
             if self.leftIdle:
@@ -218,6 +240,21 @@ class Character(object):
             win.blit(flipped_image, self.rect)
         # health bar
         draw_health_bar(win, self.x, self.y, self.health, self.maxHealth)
+
+        # Dash cooldown göstergesi
+        current_time = pygame.time.get_ticks()
+        if not self.can_dash:
+            cooldown_remaining = self.dash_cooldown - (current_time - self.last_dash_time)
+            if cooldown_remaining > 0:
+                bar_x = self.x
+                bar_y = self.y + self.height + 20
+                bar_width = 100
+                bar_height = 5
+                fill_ratio = cooldown_remaining / self.dash_cooldown
+                fill_width = bar_width * (1 - fill_ratio)  # Tersine çevrilmiş - cooldown azaldıkça bar dolar
+                pygame.draw.rect(win, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))  # Gri arka plan
+                pygame.draw.rect(win, (0, 150, 255), (bar_x, bar_y, fill_width, bar_height))  # Mavi doluluk
+
 
         # Draw game over text if health is depleted
         if self.health <= 0:
