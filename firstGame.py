@@ -1,14 +1,15 @@
 ### firstGame.py
 import pygame
 import constants
+import os
 from character import Character
 from boss import Boss
 from functions import *
 from Background import SamuraiBackground
+from menu import Menu
 from sfx import SoundManager
 
 pygame.init()
-
 
 
 win = pygame.display.set_mode((constants.screenWidth, constants.screenHeight))
@@ -22,7 +23,6 @@ sfx_manager.play_music("menu")
 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
 #bg = pygame.image.load(os.path.join("pygame_hack&slash","assets", "PixelArtForest", "Preview", "Background.png"))
 
-
 bullets = []
 
 # Oyuncu
@@ -32,7 +32,20 @@ player.set_sfx_manager(sfx_manager)
 # Boss
 boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50, player, sfx_manager)
 
-font = pygame.font.SysFont("comicsans", 30)
+# Pixel font yükleme
+try:
+    font_path = constants.FONT_PATH
+    if os.path.exists(font_path):
+        font = pygame.font.Font(font_path, 30)
+        print(f"Pixel font yüklendi: {font_path}")
+    else:
+        # Fallback font
+        font = pygame.font.SysFont("comicsans", 30)
+        print("Pixel font bulunamadı, varsayılan font kullanılıyor.")
+except Exception as e:
+    print(f"Font yüklenirken hata oluştu: {e}")
+    # Fallback font
+    font = pygame.font.SysFont("comicsans", 30)
 
 class Projectile:
     def __init__(self, x, y, width, height, facing, vel, sprite=None):
@@ -62,12 +75,8 @@ class Projectile:
         win.blit(sprite, (self.x, self.y))
         self.frameCount = (self.frameCount + 1) % len(self.sprites)
 
-# Fontlar
-fonts = {
-    "small": pygame.font.Font(None, 24),
-    "medium": pygame.font.Font(None, 36),
-    "large": pygame.font.Font(None, 72)
-}
+# Menü sistemi                                                                                                      #💥
+menu = Menu(constants.screenWidth, constants.screenHeight)                                                          #💥
 
 # Oyun Değişkenleri
 clock = pygame.time.Clock()
@@ -168,19 +177,38 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Sol tık
-                if game_active:
-                    sfx_manager.play_sound("attack1")
-                elif start_button and start_button.collidepoint(pygame.mouse.get_pos()):
-                    # Start butonuna tıklandı mı kontrol et
-                    game_active = True
-                    sfx_manager.stop_music(fade_ms=500)
-                    sfx_manager.play_music("battle", fade_ms=1000)
+            break                                                                                 #💥  burdan aşağısı
+
+        if not game_active:
+            # Menü olaylarını işle
+            result = menu.handle_event(event, (constants.screenWidth, constants.screenHeight))
+
+            if result == "play":
+                game_active = True
+                sfx_manager.stop_music(fade_ms=500)
+                # Menüdeki ses seviyesi ayarlarını kullan
+                sfx_manager.set_music_volume(menu.music_volume)
+                sfx_manager.set_sfx_volume(menu.sfx_volume)
+                sfx_manager.play_music("battle", fade_ms=1000)
+            elif result == "quit":
+                run = False
+                break
+            elif isinstance(result, tuple) and result[0] == "resolution":
+                # Çözünürlük değiştirme
+                new_width, new_height = result[1]
+                win = pygame.display.set_mode((new_width, new_height))
+                constants.screenWidth = new_width
+                constants.screenHeight = new_height
+                # Arkaplanı yeniden oluştur
+                bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
+                # Menü boyutlarını güncelle
+                menu = Menu(constants.screenWidth, constants.screenHeight)
+        elif event.type == pygame.MOUSEBUTTONDOWN and game_active:
+            if event.button == 1:  # Sol tık ve oyun aktifse
+                sfx_manager.play_sound("attack1")                                                 # 💥 burdan yukarısı
 
     if not game_active:
-        # Start menüsünü çiz ve buton rect'ini al
-        start_button = draw_start_menu(win, constants, fonts)
+        menu_rects = menu.draw(win, constants, sfx_manager)                                                         #💥
         pygame.display.update()
         continue
 
