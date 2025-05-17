@@ -9,40 +9,6 @@ from sfx import SoundManager
 
 pygame.init()
 
-def draw_start_menu(win, constants, fonts):
-    """Samuray temalı başlangıç menüsü"""
-    win.fill((20, 0, 0))
-    pygame.draw.rect(win, (40, 0, 0), (0, constants.screenHeight // 2, constants.screenWidth, constants.screenHeight // 2))
-
-    title_text = fonts["large"].render("SHADOW FIGHT", True, (255, 215, 0))
-    title_shadow = fonts["large"].render("SHADOW FIGHT", True, (100, 0, 0))
-    win.blit(title_shadow, (constants.screenWidth // 2 - title_text.get_width() // 2 + 3, 100 + 3))
-    win.blit(title_text, (constants.screenWidth // 2 - title_text.get_width() // 2, 100))
-
-    subtitle_text = fonts["medium"].render("İki Kılıcın Kader Savaşı", True, (200, 200, 200))
-    win.blit(subtitle_text, (constants.screenWidth // 2 - subtitle_text.get_width() // 2, 180))
-
-    btn_width, btn_height = 300, 60
-    btn_x = constants.screenWidth // 2 - btn_width // 2
-    btn_y = constants.screenHeight // 2 + 50
-
-    pygame.draw.rect(win, (100, 0, 0), (btn_x + 5, btn_y + 5, btn_width, btn_height))
-    mouse_pos = pygame.mouse.get_pos()
-    btn_hover = pygame.Rect(btn_x, btn_y, btn_width, btn_height).collidepoint(mouse_pos)
-    btn_color = (180, 0, 0) if not btn_hover else (220, 0, 0)
-    pygame.draw.rect(win, btn_color, (btn_x, btn_y, btn_width, btn_height))
-    pygame.draw.rect(win, (255, 215, 0), (btn_x, btn_y, btn_width, btn_height), 3)
-
-    btn_text = fonts["medium"].render("Savaşa Başla", True, constants.WHITE)
-    win.blit(btn_text, (constants.screenWidth // 2 - btn_text.get_width() // 2, btn_y + btn_height // 2 - btn_text.get_height() // 2))
-
-    info_text = fonts["small"].render("WASD: Hareket | F: Saldırı | V: Shuriken | L-Shift: Dash", True, (150, 150, 150))
-    win.blit(info_text, (constants.screenWidth // 2 - info_text.get_width() // 2, constants.screenHeight - 50))
-
-    pygame.draw.polygon(win, (80, 80, 80), [(50, 300), (100, 200), (150, 300)])
-    pygame.draw.polygon(win, (80, 80, 80), [(constants.screenWidth - 50, 300), (constants.screenWidth - 100, 200), (constants.screenWidth - 150, 300)])
-
-    return pygame.Rect(btn_x, btn_y, btn_width, btn_height)
 
 
 win = pygame.display.set_mode((constants.screenWidth, constants.screenHeight))
@@ -220,6 +186,16 @@ while run:
 
     keys = pygame.key.get_pressed()
     clicks = pygame.mouse.get_pressed()
+
+    # Ölüm durumunda R tuşu ile oyunu yeniden başlat
+    if player.death_animation_finished and keys[pygame.K_r]:
+        # Oyunu yeniden başlat
+        player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)
+        player.set_sfx_manager(sfx_manager)
+        boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50, player, sfx_manager)
+        bullets = []
+        continue
+
     player.move(keys, clicks)
 
     # Player'ın boss içerisine girmesini engelle

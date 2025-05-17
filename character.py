@@ -16,22 +16,18 @@ class Character(object):
         attack1 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 1.png"), 96, 84, 6)
         attack2 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 2.png"), 96, 84, 6)
         attack3 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 3.png"), 96, 84, 6)
-
-        # Zincirleme saldırı için attack1, attack2 ve attack3'ü birleştir
         combo_attack = []
         combo_attack.extend(attack1)
         combo_attack.extend(attack2)
         combo_attack.extend(attack3)
-
-        # Air attack animasyonu
         air_attack = load_and_scale_sheet(os.path.join(assets_path, "AIR ATTACK.png"), 96, 84, 6)
-
         throw = load_and_scale_sheet(os.path.join(assets_path, "THROW.png"), 96, 84, 7)
-
-        # Animasyon listelerini oluştur
-        # 0: idle, 1: walk, 2: run, 3: dash, 4: combo_attack, 5: throw, 6: air_attack
-        animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack]
+        death = load_and_scale_sheet(os.path.join(assets_path, "DEATH.png"), 96, 84, 9)
+        animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack, death]
         return animation_list
+
+
+
 
     @staticmethod
     def load_shuriken():
@@ -58,9 +54,16 @@ class Character(object):
         self.last_dash_time = 0
         self.dash_cooldown = constants.CHAR_DASH_COOLDOWN
         self.can_dash = True
+        self.dash_direction_x = 0  # Dash yönü X
+        self.dash_direction_y = 0  # Dash yönü Y
         # Can ve sağlık
         self.health = constants.CHAR_HEALTH
         self.maxHealth = constants.CHAR_MAX_HEALTH
+        # Ölüm durumu
+        self.is_dead = False
+        self.death_animation_started = False
+        self.death_animation_finished = False
+        self.death_frame_duration = 100  # ms cinsinden ölüm animasyonu süresi
         # Saldırı
         self.is_attacking = False
         self.last_attack_time = 0
@@ -109,7 +112,7 @@ class Character(object):
         self.char_type = char_type
 
         # Animasyonları yükle
-        self.animation_list = self.load_animations()  # idle, walk, run, dash, attack, throw
+        self.animation_list = self.load_animations()
         self.action = 0  # 0: idle, 1: walk, 2: run, 3: dash, 4: attack , 5: throw
         self.walking = False
         self.image = self.animation_list[self.action][self.frame_index]  # charIdle
@@ -152,21 +155,75 @@ class Character(object):
             return False
 
     def move(self, keys, clicks):
+        # Ölüm durumunda hareketi devre dışı bırak
+        if self.is_dead:
+            self.horizontal = 0
+            self.vertical = 0
+            self.walking = False
+            return
+
         self.walking = False
 
         self.horizontal = int(keys[pygame.K_d]) - int(keys[pygame.K_a])
         self.vertical   = int(keys[pygame.K_s]) - int(keys[pygame.K_w])
 
-        if abs(self.horizontal) or abs(self.vertical): # if moving
+        # Dash cooldown kontrolü
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_dash_time >= self.dash_cooldown:
+            self.can_dash = True
+
+        # Dash başlatma
+        if keys[pygame.K_SPACE] and self.can_dash and not self.isDashing:
+            # Dash başlamadan önce hareket yönünü kaydet
+            self.dash_direction_x = 0
+            self.dash_direction_y = 0  # Dikey hareket olmayacak
+
+            # Sadece yatay hareket için dash yönünü belirle
+            if self.horizontal != 0:
+                # Yatay hareket varsa, o yönde dash yap
+                if self.horizontal > 0:
+                    self.dash_direction_x = 1  # Sağa
+                else:
+                    self.dash_direction_x = -1  # Sola
+            # Yatay hareket yoksa, baktığı yönde dash yap
+            else:
+                if self.flip:  # Sola bakıyorsa
+                    self.dash_direction_x = -1
+                else:  # Sağa bakıyorsa
+                    self.dash_direction_x = 1
+
+            self.isDashing = True
+            self.can_dash = False
+            self.last_dash_time = current_time
+            self.dash_start_time = current_time
+            print(f"Dash başladı! Yön: ({self.dash_direction_x}, {self.dash_direction_y})")
+
+        # Apply dash if active
+        if self.isDashing:
+            self.walking = False
+            self.running = False
+
+            # W, A, S, D tuşlarını görmezden gel
+            # Dash sırasında sabit yönde hareket et
+            self.x += self.dash_direction_x * self.dashVel
+            self.y += self.dash_direction_y * self.dashVel
+
+            # Dash süresi kontrolü (dash_delay kadar sürer)
+            if current_time - self.dash_start_time > constants.CHAR_DASH_DELAY:
+                self.isDashing = False
+                # Dash bittikten sonra air attack yapılabilir
+                self.can_air_attack = True
+                print("Dash bitti! Air attack yapılabilir!")
+
+        if abs(self.horizontal) or abs(self.vertical) and not self.isDashing: # if moving
             self.walking = True
-        if abs(self.horizontal) and abs(self.vertical): # if moving diagonally
+        if abs(self.horizontal) and abs(self.vertical) and not self.isDashing: # if moving diagonally
             self.x += self.horizontal * self.vel/math.sqrt(2)
             self.y += self.vertical * self.vel /math.sqrt(2)
-        else:
+        elif not self.isDashing:
             self.x += self.horizontal * self.vel
             self.y += self.vertical * self.vel
 
-        # Character'in yönü
         if self.horizontal < 0:
             self.left = True
             self.flip = True
@@ -179,41 +236,13 @@ class Character(object):
         else:
             self.running = False
 
-        # Dash cooldown kontrolü
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_dash_time >= self.dash_cooldown:
-            self.can_dash = True
 
-        # Dash movement
-        if keys[pygame.K_SPACE] and self.can_dash and not self.isDashing:
-            self.isDashing = True
-            self.can_dash = False
-            self.last_dash_time = current_time # Cooldown için kullanılıyor
-            self.dash_start_time = current_time # Dash süresi için kullanılıyor
 
-        # Apply dash if active
-        if self.isDashing:
-            if keys[pygame.K_a]:
-                self.x -= self.dashVel
-            if keys[pygame.K_d]:
-                self.x += self.dashVel
-            if keys[pygame.K_w]:
-                self.y -= self.dashVel
-            if keys[pygame.K_s]:
-                self.y += self.dashVel
-            # Dash süresi kontrolü (dash_delay kadar sürer)
-            if current_time - self.dash_start_time > constants.CHAR_DASH_DELAY:
-                self.isDashing = False
-                # Dash bittikten sonra air attack yapılabilir
-                self.can_air_attack = True
-                print("Air attack yapılabilir!")
 
-        # Air attack penceresi kontrolü
         if self.can_air_attack and current_time - self.dash_start_time > self.air_attack_window:
             self.can_air_attack = False
             print("Air attack penceresi kapandı!")
 
-        # Air attack (F tuşu ile)
         if clicks[2] and self.can_air_attack and not self.is_air_attacking and not self.is_attacking:
             self.is_air_attacking = True
             self.can_air_attack = False  # Bir kez kullanılabilir
@@ -225,15 +254,12 @@ class Character(object):
             if self.sfx_manager:
                 self.sfx_manager.play_sound("attack1")
 
-        # Normal saldırı (sol tık ile)
+
         if clicks[0]: # left mouse click
             current_time = pygame.time.get_ticks()
-
-            # Eğer saldırı yapılmıyorsa ve cooldown geçtiyse
             if not self.is_attacking and not self.is_air_attacking and current_time - self.last_attack_time > self.attack_cooldown:
                 self.is_attacking = True
                 self.last_attack_time = current_time
-
                 # Zincirleme saldırı kontrolü
                 if current_time - self.last_combo_time < self.combo_window:
                     # Combo penceresi içinde, combo sayacını artır
@@ -241,24 +267,33 @@ class Character(object):
                 else:
                     # Combo penceresi dışında, combo sayacını sıfırla
                     self.combo_count = 0
-
                 self.last_combo_time = current_time
-                self.frame_index = 0  # Animasyonu baştan başlat
+                self.frame_index = 0
                 self.has_dealt_damage = False
-
 
 
 
     def update(self):
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
+
+        # Sağlık kontrolü - ölüm durumu
+        if self.health <= 0 and not self.is_dead:
+            self.is_dead = True
+            self.death_animation_started = True
+            self.frame_index = 0
+            print("Character died! Starting death animation...")
+
         # checking action
-        if self.is_throwing:
+        if self.is_dead:
+            self.update_action(7)  # 7: death animasyonu
+        elif self.is_throwing:
             self.update_action(5)  # 5: throw animasyonu
         elif self.is_air_attacking:
             self.update_action(6)  # 6: air_attack animasyonu
         elif self.is_attacking:
             self.update_action(4)  # 4: combo_attack animasyonu
         elif self.isDashing:
+            print("dashing")
             self.update_action(3)  # 3: dash animasyonu
         elif self.running:
             self.update_action(2)  # 2: run animasyonu
@@ -278,7 +313,19 @@ class Character(object):
         # animation delay
         animation_cooldown = constants.CHAR_ANIM_COOLDOWN_MS
 
-        if self.is_throwing:  # throw animation
+        if self.is_dead:
+            self.image = self.animation_list[7][self.frame_index]
+            if pygame.time.get_ticks() - self.last_update >= self.death_frame_duration:
+                self.last_update = pygame.time.get_ticks()
+                if self.frame_index < len(self.animation_list[7]) - 1:
+                    self.frame_index += 1
+                else:
+                    # son frame girdiğinde
+                    if not self.death_animation_finished:
+                        self.death_animation_finished = True
+                        print("Death animation finished!")
+
+        elif self.is_throwing:
             self.image = self.animation_list[5][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.throw_frame_duration:
                 self.last_update = pygame.time.get_ticks()
@@ -287,18 +334,16 @@ class Character(object):
                 if self.frame_index == 0:
                     self.is_throwing = False
 
-        elif self.is_air_attacking:  # air attack animation
+        elif self.is_air_attacking:
             self.image = self.animation_list[6][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
                 self.last_update = pygame.time.get_ticks()
                 self.frame_index = (self.frame_index + 1) % len(self.animation_list[6])
-
                 # Air attack hasar kontrolü
                 if self.frame_index == self.air_attack_frame and not self.has_dealt_damage:
                     # has_dealt_damage değişkenini firstGame.py'de güncelleyeceğiz
                     # Burada sadece log mesajı yazdırıyoruz
                     print(f"Air attack hasar verme frame'i! Frame: {self.frame_index}")
-
                 # Animasyon tamamlandığında
                 if self.frame_index == 0:
                     self.is_air_attacking = False
@@ -333,14 +378,15 @@ class Character(object):
                     self.is_attacking = False
                     print(f"Combo {self.combo_count} tamamlandı!")
 
-        elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
-            if self.isDashing:
-                # print("dashing")
+        elif self.isDashing:
+                print("dashing")
                 self.image = self.animation_list[3][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[3])
-            elif self.running:
+
+        elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
+            if self.running:
                 self.image = self.animation_list[2][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
@@ -405,10 +451,19 @@ class Character(object):
                 pygame.draw.rect(win, (0, 150, 255), (bar_x, bar_y, fill_width, bar_height))  # Mavi doluluk
 
 
-        # Draw game over text if health is depleted
-        if self.health <= 0:
-            gameOverText = font.render("GAME OVER", True, (255, 255, 255))
-            win.blit(gameOverText, ((self.screenWidth // 2 - gameOverText.get_width() // 2), 300))
+        if self.death_animation_finished:
+            gameOverFont = pygame.font.Font(None, 72)  # Daha büyük font
+            gameOverText = gameOverFont.render("GAME OVER", True, (255, 0, 0))  # Kırmızı renk
+
+            # Yazıyı ekranın ortasına yerleştir
+            win.blit(gameOverText, ((self.screenWidth // 2 - gameOverText.get_width() // 2),
+                                   (self.screenHeight // 2 - gameOverText.get_height() // 2)))
+
+            # Yeniden başlatma talimatı
+            restartFont = pygame.font.Font(None, 36)
+            restartText = restartFont.render("Press R to Restart", True, (255, 255, 255))
+            win.blit(restartText, ((self.screenWidth // 2 - restartText.get_width() // 2),
+                                  (self.screenHeight // 2 + gameOverText.get_height())))
 
         # Saldırı hitbox'ını her zaman göster (debug için)
         if self.is_attacking or self.is_air_attacking:
