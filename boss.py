@@ -185,12 +185,6 @@ class Boss:
             if "_flame" in attack_key:
                 attack_key = attack_key.replace("_flame", "")
 
-            # Frame değiştiğinde hasar verme durumunu kontrol et
-            if attack_key in self.attack_frames:
-                # Debug için frame bilgisini yazdır
-                if self.frame_index in self.attack_frames[attack_key]:
-                    print(f"Boss attack frame: {self.frame_index} in {attack_key} (Action: {self.action})")
-
         if self.health <= 0:
             self.action = "death"
             return

@@ -43,7 +43,8 @@ class Menu:
             "Run": "L-SHIFT",
             "Dash": "SPACE",
             "Attack": "LMB",
-            "Shuriken": "V"
+            "Shuriken": "V",
+            "Healing" : "E"
         }
 
         # Menü için renkler
