@@ -405,10 +405,7 @@ class Character(object):
                 pygame.draw.rect(win, (0, 150, 255), (bar_x, bar_y, fill_width, bar_height))  # Mavi doluluk
 
 
-        # Draw game over text if health is depleted
-        if self.health <= 0:
-            gameOverText = font.render("GAME OVER", True, (255, 255, 255))
-            win.blit(gameOverText, ((self.screenWidth // 2 - gameOverText.get_width() // 2), 300))
+        # Game over text kaldırıldı - menu.py içinde yapılıyor
 
         # Saldırı hitbox'ını her zaman göster (debug için)
         if self.is_attacking or self.is_air_attacking:
