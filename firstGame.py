@@ -149,10 +149,14 @@ def redrawGameWindow():
         player.y = constants.screenHeight // 2 - player.height
     if player.rect.left < 0:
         player.x = 0
+    elif player.rect.bottom > constants.screenHeight:
+        player.y = constants.screenHeight - player.height
     if player.rect.right > constants.screenWidth:
         player.x = constants.screenWidth - player.width
 
     if boss.rect.bottom < constants.screenHeight // 2:
+        boss.y = boss.y
+    elif boss.rect.bottom > constants.screenHeight:
         boss.y = boss.y
     if boss.rect.left < 0:
         boss.x = 0
