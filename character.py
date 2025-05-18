@@ -16,21 +16,17 @@ class Character(object):
         attack1 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 1.png"), 96, 84, 6)
         attack2 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 2.png"), 96, 84, 6)
         attack3 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 3.png"), 96, 84, 6)
-
-        # Zincirleme saldırı için attack1, attack2 ve attack3'ü birleştir
+        hurt = load_and_scale_sheet(os.path.join(assets_path, "HURT.png"), 96, 84, 4)
+        healing = load_and_scale_sheet(os.path.join(assets_path, "HEALING.png"), 96, 84, 15)
         combo_attack = []
         combo_attack.extend(attack1)
         combo_attack.extend(attack2)
         combo_attack.extend(attack3)
-
-        # Air attack animasyonu
         air_attack = load_and_scale_sheet(os.path.join(assets_path, "AIR ATTACK.png"), 96, 84, 6)
 
         throw = load_and_scale_sheet(os.path.join(assets_path, "THROW.png"), 96, 84, 7)
-
-        # Animasyon listelerini oluştur
         # 0: idle, 1: walk, 2: run, 3: dash, 4: combo_attack, 5: throw, 6: air_attack
-        animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack]
+        animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack, hurt, healing]
         return animation_list
 
     @staticmethod
@@ -69,53 +65,53 @@ class Character(object):
         self.attack_damage = constants.CHAR_ATTACK_DAMAGE
         self.attack_frame = constants.CHAR_ATTACK_FRAME
         self.has_dealt_damage = False
-
         # Zincirleme saldırı
         self.combo_count = 0  # Kaç saldırı yapıldığını takip eder (0, 1, 2)
         self.combo_max = 3  # Maksimum zincirleme saldırı sayısı
         self.combo_window = 1000  # ms cinsinden zincirleme saldırı penceresi
         self.last_combo_time = 0  # Son zincirleme saldırı zamanı
-
         # Air attack
         self.is_air_attacking = False
         self.can_air_attack = False  # Dash sonrası air attack yapılabilir mi?
         self.air_attack_window = 500  # ms cinsinden dash sonrası air attack penceresi
         self.air_attack_damage = constants.CHAR_ATTACK_DAMAGE * 1.5  # Air attack daha güçlü
         self.air_attack_frame = 3  # Hangi frame'de hasar verilecek
-
         # Shuriken fırlatma
         self.is_throwing = False
         self.last_throw_time = 0
         self.throw_cooldown = 0  # 0.5 saniye cooldown
         self.throw_frame_duration = 70  # ms cinsinden fırlatma süresi
         self.throw_frame = 3  # Hangi frame'de shuriken fırlatılacak
-        # Atak için çarpışma dikdörtgeni
+        # Hurt ve healing animasyonları
+        self.is_hurt = False
+        self.hurt_duration = 500  # ms cinsinden hurt animasyonu süresi
+        self.hurt_start_time = 0
+        self.is_healing = False
+        self.last_healing_time = 0
+        self.healing_cooldown = constants.CHAR_HEALING_COOLDOWN
+        self.healing_amount = constants.CHAR_HEALING_AMOUNT
+        self.healing_frame_duration = 70  # ms cinsinden healing animasyonu süresi
+        # Saldırı için hitbox
         self.attack_rect = pygame.Rect(0, 0, 80, 80)  # Saldırı hitbox'ı - daha büyük yapıldı
         # Animasyon kontrol
         self.last_update = pygame.time.get_ticks()
         self.frame_index = 0
         self.flip = False
-
         # Yönelim
         self.horizontal = 0
         self.vertical = 0
         self.left = False
-
         # Ekran sınırları
         self.screenWidth = screenWidth
         self.screenHeight = screenHeight
-
         # Karakter tipi (render offset vs.)
         self.char_type = char_type
-
         # Animasyonları yükle
         self.animation_list = self.load_animations()  # idle, walk, run, dash, attack, throw
         self.action = 0  # 0: idle, 1: walk, 2: run, 3: dash, 4: attack , 5: throw
         self.walking = False
         self.image = self.animation_list[self.action][self.frame_index]  # charIdle
-
         self.leftIdle = False
-
         # SFX yöneticisi (opsiyonel)
         self.sfx_manager = None
 
@@ -125,6 +121,21 @@ class Character(object):
 
     def set_sfx_manager(self, sfx_manager):
         self.sfx_manager = sfx_manager
+
+    def play_hurt_animation(self):
+        if not self.is_hurt:
+            self.is_hurt = True
+            self.hurt_start_time = pygame.time.get_ticks()
+            self.frame_index = 0
+
+    def start_healing(self):
+        current_time = pygame.time.get_ticks()
+        # Eğer healing cooldown süresi geçtiyse, healing animasyonu aktif değilse ve can maksimumdan düşükse
+        if not self.is_healing and current_time - self.last_healing_time > self.healing_cooldown and self.health < self.maxHealth:
+            self.is_healing = True
+            self.last_healing_time = current_time
+            self.frame_index = 0
+            print("Healing started!")
 
     def throw_shuriken(self, bullets, Projectile):
         current_time = pygame.time.get_ticks()
@@ -179,6 +190,11 @@ class Character(object):
         else:
             self.running = False
 
+        # E tuşu ile healing
+        if keys[pygame.K_e]:
+            self.start_healing()
+
+
         # Dash cooldown kontrolü
         current_time = pygame.time.get_ticks()
         if current_time - self.last_dash_time >= self.dash_cooldown:
@@ -206,12 +222,10 @@ class Character(object):
                 self.isDashing = False
                 # Dash bittikten sonra air attack yapılabilir
                 self.can_air_attack = True
-                print("Air attack yapılabilir!")
 
         # Air attack penceresi kontrolü
         if self.can_air_attack and current_time - self.dash_start_time > self.air_attack_window:
             self.can_air_attack = False
-            print("Air attack penceresi kapandı!")
 
         # Air attack (F tuşu ile)
         if clicks[2] and self.can_air_attack and not self.is_air_attacking and not self.is_attacking:
@@ -220,8 +234,6 @@ class Character(object):
             self.last_attack_time = current_time
             self.frame_index = 0  # Animasyonu baştan başlat
             self.has_dealt_damage = False
-            print("Air attack başladı!")
-            # Ses efekti
             if self.sfx_manager:
                 self.sfx_manager.play_sound("attack1")
 
@@ -251,8 +263,15 @@ class Character(object):
 
     def update(self):
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
+        current_time = pygame.time.get_ticks()
+
+
         # checking action
-        if self.is_throwing:
+        if self.is_hurt:
+            self.update_action(7)  # 7: hurt animasyonu
+        elif self.is_healing:
+            self.update_action(8)  # 8: healing animasyonu
+        elif self.is_throwing:
             self.update_action(5)  # 5: throw animasyonu
         elif self.is_air_attacking:
             self.update_action(6)  # 6: air_attack animasyonu
@@ -267,18 +286,35 @@ class Character(object):
         else:
             self.update_action(0)  # 0: idle animasyonu
 
-        # Saldırı hitbox'ını karakterin yönüne göre güncelle
         if self.flip:
-            # Sol tarafa saldırı
             self.attack_rect.midright = (self.rect.left - 10, self.rect.centery)
         else:
-            # Sağ tarafa saldırı
             self.attack_rect.midleft = (self.rect.right + 10, self.rect.centery)
 
-        # animation delay
         animation_cooldown = constants.CHAR_ANIM_COOLDOWN_MS
 
-        if self.is_throwing:  # throw animation
+        if self.is_hurt:  
+            self.image = self.animation_list[7][self.frame_index]
+            if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                self.last_update = pygame.time.get_ticks()
+                self.frame_index = (self.frame_index + 1) % len(self.animation_list[7])
+
+                if self.frame_index == 0:
+                    self.is_hurt = False
+
+        elif self.is_healing: 
+            self.image = self.animation_list[8][self.frame_index]
+            if pygame.time.get_ticks() - self.last_update >= self.healing_frame_duration:
+                #print(f"Healing frame: {self.frame_index}")
+                self.last_update = pygame.time.get_ticks()
+
+                if self.frame_index >= len(self.animation_list[8]) - 1:
+                    self.health = min(self.health + self.healing_amount, self.maxHealth)
+                    self.is_healing = False
+                else:
+                    self.frame_index += 1
+
+        elif self.is_throwing:  
             self.image = self.animation_list[5][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.throw_frame_duration:
                 self.last_update = pygame.time.get_ticks()
@@ -287,22 +323,14 @@ class Character(object):
                 if self.frame_index == 0:
                     self.is_throwing = False
 
-        elif self.is_air_attacking:  # air attack animation
+        elif self.is_air_attacking:  
             self.image = self.animation_list[6][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
                 self.last_update = pygame.time.get_ticks()
                 self.frame_index = (self.frame_index + 1) % len(self.animation_list[6])
-
-                # Air attack hasar kontrolü
-                if self.frame_index == self.air_attack_frame and not self.has_dealt_damage:
-                    # has_dealt_damage değişkenini firstGame.py'de güncelleyeceğiz
-                    # Burada sadece log mesajı yazdırıyoruz
-                    print(f"Air attack hasar verme frame'i! Frame: {self.frame_index}")
-
-                # Animasyon tamamlandığında
+                       
                 if self.frame_index == 0:
                     self.is_air_attacking = False
-                    print("Air attack tamamlandı!")
 
         elif self.is_attacking: # combo attack animation
             # Combo animasyonları için frame offset hesapla
@@ -318,20 +346,12 @@ class Character(object):
             self.image = self.animation_list[4][current_frame]
 
             if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
-                print(f"Combo {self.combo_count+1}, frame: {self.frame_index}, total: {current_frame}")
                 self.last_update = pygame.time.get_ticks()
-                self.frame_index = (self.frame_index + 1) % 6  # Her bir saldırı 6 frame
+                self.frame_index = (self.frame_index + 1) % 6 
 
-                # Hasar verme frame'i kontrolü
-                if self.frame_index == self.attack_frame and not self.has_dealt_damage:
-                    # has_dealt_damage değişkenini firstGame.py'de güncelleyeceğiz
-                    # Burada sadece log mesajı yazdırıyoruz
-                    print(f"Combo {self.combo_count+1} hasar verme frame'i! Frame: {self.frame_index}")
-
-                # Animasyon tamamlandığında
+                
                 if self.frame_index == 0:
                     self.is_attacking = False
-                    print(f"Combo {self.combo_count} tamamlandı!")
 
         elif abs(self.horizontal) or abs(self.vertical): # walking/dashing animation
             if self.isDashing:
@@ -374,13 +394,20 @@ class Character(object):
         if self.is_attacking and self.last_update - self.last_attack_time > self.attack_cooldown:
             self.is_attacking = False
 
+        # Hurt animasyonu süresi kontrolü
+        if self.is_hurt and current_time - self.hurt_start_time > self.hurt_duration:
+            self.is_hurt = False
+
+
+
+
     def update_action(self,new_action):
         if new_action != self.action:
             self.action = new_action
             self.frame_index = 0
             self.last_update = pygame.time.get_ticks()
 
-    def draw(self, win, font):
+    def draw(self, win, font=None):  # font parametresi opsiyonel
         pygame.draw.rect(win, constants.RED, self.rect, 1)
         flipped_image = pygame.transform.flip(self.image, self.flip, False)
         if(self.char_type == 0):
