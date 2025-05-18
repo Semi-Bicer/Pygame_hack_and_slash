@@ -29,7 +29,7 @@ player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenW
 player.set_sfx_manager(sfx_manager)
 
 # Boss
-boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50, player, sfx_manager)
+boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y, player, sfx_manager)
 
 # Pixel font yükleme
 try:
@@ -196,10 +196,20 @@ while run:
                 break
             elif isinstance(result, tuple) and result[0] == "resolution":
                 # Çözünürlük değiştirme
-                new_width, new_height = result[1]
-                win = pygame.display.set_mode((new_width, new_height))
-                constants.screenWidth = new_width
-                constants.screenHeight = new_height
+                if result[1] == "fullscreen":
+                    # Tam ekran modu
+                    win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                    # Ekran boyutlarını al
+                    display_info = pygame.display.Info()
+                    constants.screenWidth = display_info.current_w
+                    constants.screenHeight = display_info.current_h
+                else:
+                    # Normal pencere modu
+                    new_width, new_height = result[1]
+                    win = pygame.display.set_mode((new_width, new_height))
+                    constants.screenWidth = new_width
+                    constants.screenHeight = new_height
+
                 # Arkaplanı yeniden oluştur
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
                 # Menü boyutlarını güncelle
@@ -223,8 +233,31 @@ while run:
                 player.x = constants.CHAR_X
                 player.y = constants.CHAR_Y
                 boss.x = constants.BOSS_START_X
-                boss.y = constants.BOSS_START_Y - 50
+                boss.y = constants.BOSS_START_Y
                 game_paused = False
+            elif isinstance(result, tuple) and result[0] == "resolution":
+                # Çözünürlük değiştirme - pause menüsünden
+                if result[1] == "fullscreen":
+                    # Tam ekran modu
+                    win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                    # Ekran boyutlarını al
+                    display_info = pygame.display.Info()
+                    constants.screenWidth = display_info.current_w
+                    constants.screenHeight = display_info.current_h
+                else:
+                    # Normal pencere modu
+                    new_width, new_height = result[1]
+                    win = pygame.display.set_mode((new_width, new_height))
+                    constants.screenWidth = new_width
+                    constants.screenHeight = new_height
+
+                # Arkaplanı yeniden oluştur
+                bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
+                # Menü boyutlarını güncelle
+                menu = Menu(constants.screenWidth, constants.screenHeight)
+                # Pause menüsüne geri dön
+                menu.current_menu = "pause"
+                menu.selected_item = 0
             elif result == "back":
                 # Menüler arası geçiş için bir şey yapmaya gerek yok
                 # Menü sınıfı içinde current_menu zaten güncelleniyor

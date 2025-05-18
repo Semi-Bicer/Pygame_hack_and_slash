@@ -21,8 +21,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # Karakter sabitleri
-CHAR_X                = 500
-CHAR_Y                = 700
+CHAR_X                = 200  # Solda başlasın
+CHAR_Y                = 500  # Ayakları zemine hizalı
 CHAR_HEALTH           = 100
 CHAR_MAX_HEALTH       = 100
 CHAR_SPEED            = 6
@@ -40,8 +40,8 @@ CHAR_ATTACK_FRAME = 3
 BOSS_FRAME_WIDTH      = 128
 BOSS_FRAME_HEIGHT     = 108
 BOSS_NUM_FRAMES       = 6
-BOSS_START_X          = 300
-BOSS_START_Y          = 300
+BOSS_START_X          = 800  # Sağda başlasın
+BOSS_START_Y          = 450  # Ayakları zemine hizalı
 BOSS_SPEED            = 2.0
 BOSS_FOLLOW_DISTANCE  = 300
 BOSS_HEALTH           = 300
