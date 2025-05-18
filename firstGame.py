@@ -59,9 +59,7 @@ class Projectile:
         self.sprites = [sprite] if sprite else []
 
     def draw(self, win):
-        # Check if sprites list is not empty
         if not self.sprites or len(self.sprites) == 0:
-            # Draw a simple rectangle if no sprites are available
             pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.width, self.height))
             return
 
@@ -81,8 +79,8 @@ menu = Menu(constants.screenWidth, constants.screenHeight)                      
 clock = pygame.time.Clock()
 run = True
 game_active = False
-game_paused = False  # Oyun duraklatıldı mı?
-start_button = None  # Start butonu için rect
+game_paused = False  
+start_button = None  
 
 def redrawGameWindow():
     bg.update()
@@ -94,26 +92,20 @@ def redrawGameWindow():
     player.draw(win, font)
     player.update()
 
-    # Boss'un hitbox'ını göster
+    
     pygame.draw.rect(win, constants.RED, boss.rect, 1)
 
     # Normal saldırı hasar kontrolü
     if player.is_attacking:
-        # Debug için attack_rect'i göster
         pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
 
-        # Hasar verme frame'inde ve henüz hasar verilmemişse
+        # Henüz hasar verilmemişse
         if player.frame_index == player.attack_frame and not player.has_dealt_damage:
-            print(f"Checking attack collision, frame: {player.frame_index}")
             # Çarpışma kontrolü
             if player.attack_rect.colliderect(boss.rect):
-                # Combo sayısına göre artan hasar
                 combo_damage = player.attack_damage * (1 + player.combo_count * 0.2)  # Her combo %20 daha fazla hasar
                 boss.take_damage(combo_damage)
                 player.has_dealt_damage = True
-                print(f"Boss hit! Combo {player.combo_count+1}, Hasar: {combo_damage}, Sağlık: {boss.health}")
-            else:
-                print("Attack missed! No collision with boss.")
 
     # Air attack hasar kontrolü
     elif player.is_air_attacking:
@@ -122,14 +114,10 @@ def redrawGameWindow():
 
         # Hasar verme frame'inde ve henüz hasar verilmemişse
         if player.frame_index == player.air_attack_frame and not player.has_dealt_damage:
-            print(f"Checking air attack collision, frame: {player.frame_index}")
             # Çarpışma kontrolü
             if player.attack_rect.colliderect(boss.rect):
                 boss.take_damage(player.air_attack_damage)
                 player.has_dealt_damage = True
-                print(f"Boss air attack hit! Hasar: {player.air_attack_damage}, Sağlık: {boss.health}")
-            else:
-                print("Air attack missed! No collision with boss.")
 
     for bullet in bullets[:]:
         bullet.x += (bullet.vel * bullet.facing)
@@ -144,7 +132,6 @@ def redrawGameWindow():
         if bullet_rect.colliderect(boss.rect):
             bullets.remove(bullet)
             boss.take_damage(constants.PROJECTILE_DAMAGE)
-            print("Boss hit! Sağlık:", boss.health)
             continue
 
         bullet.draw(win)
@@ -166,7 +153,8 @@ def redrawGameWindow():
                     dmg = constants.DAMAGE_BOSS_PHASE_2 if boss.phase == 2 else constants.DAMAGE_BOSS_PHASE_1
                     player.health -= dmg
                     boss.has_dealt_damage = True
-                    print("Player hit! Sağlık:", player.health)
+                    # Hurt animasyonunu başlat
+                    player.play_hurt_animation()
 
     #pygame.draw.rect(win, constants.RED, boss_rect, 2)
     pygame.display.update()
