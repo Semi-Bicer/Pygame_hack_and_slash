@@ -66,9 +66,9 @@ class Boss:
         self.invincible = False
         self.phase_transition = False
 
-        self.min_follow_distance = self.rect.width * 1.1 - player.rect.width
+        # Boss'un karaktere yaklaşabileceği minimum mesafe - daha yakına gelmez
+        self.min_follow_distance = 50  # Sabit 50 piksel mesafe
         self.follow_distance = constants.BOSS_FOLLOW_DISTANCE
-
 
         self.phase2_speed_multiplier = 3
         self.phase2_damage_multiplier = 2
@@ -266,7 +266,8 @@ class Boss:
 
         should_move = False
 
-        if dist < 100 and now - self.last_attack_time > self.attack_cooldown:
+        # Belirli bir mesafede saldırı yap
+        if dist < 150 and now - self.last_attack_time > self.attack_cooldown:
             self.choose_attack()
             self.last_attack_time = now
             self.frame_index = 0
@@ -360,14 +361,12 @@ class Boss:
 
         # Sprite'ı çiz - frame boyutları değişmeden
         win.blit(flipped_sprite, (self.x - constants.BOSS_HITBOX_OFFSET_X * self.scale, self.y - constants.BOSS_HITBOX_OFFSET_Y * self.scale))
-        pygame.draw.rect(win, constants.BLUE, self.rect, 2)
+        #pygame.draw.rect(win, constants.BLUE, self.rect, 2)
 
-        draw_health_bar(win, self.x - 10, self.y - 10, self.health, self.maxHealth)
+        draw_health_bar(win, self.x + 55, self.y + 25, self.health, self.maxHealth)
 
         if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
             self.last_update = pygame.time.get_ticks()
             self.frame_index += 1
-        pygame.draw.rect(win, constants.RED, self.rect, 2)
+        #pygame.draw.rect(win, constants.RED, self.rect, 2)
         # Saldırı hitbox'ını göster
-        if self.action.startswith("attack") or self.action == "jump_attack":
-            pygame.draw.rect(win, constants.RED, self.attack_rect, 2)

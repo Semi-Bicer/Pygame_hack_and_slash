@@ -60,7 +60,7 @@ class Projectile:
 
     def draw(self, win):
         if not self.sprites or len(self.sprites) == 0:
-            pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.width, self.height))
+            #pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.width, self.height))
             return
 
         if self.frameCount >= len(self.sprites):
@@ -93,10 +93,10 @@ def redrawGameWindow():
     player.update()
 
     
-    pygame.draw.rect(win, constants.RED, boss.rect, 1)
+    #pygame.draw.rect(win, constants.RED, boss.rect, 1)
 
     if player.is_attacking:
-        pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
+        #pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
         if player.frame_index == player.attack_frame and not player.has_dealt_damage:
             if player.attack_rect.colliderect(boss.rect):
                 combo_damage = player.attack_damage * (1 + player.combo_count * 0.2)  
@@ -105,7 +105,7 @@ def redrawGameWindow():
 
     elif player.is_air_attacking:
         # Debug için
-        pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
+        #pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
 
         if player.frame_index == player.air_attack_frame and not player.has_dealt_damage:
             if player.attack_rect.colliderect(boss.rect):
@@ -130,7 +130,7 @@ def redrawGameWindow():
 
     if (boss.action.startswith("attack") or boss.action == "jump_attack"):
         # debug için
-        pygame.draw.rect(win, (255, 0, 0), boss.attack_rect, 2)
+        #pygame.draw.rect(win, (255, 0, 0), boss.attack_rect, 2)
 
         attack_key = boss.action
         if "_flame" in attack_key:
