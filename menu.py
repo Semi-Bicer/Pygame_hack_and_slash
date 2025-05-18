@@ -9,6 +9,18 @@ class Menu:
         self.current_menu = "main"  # main, options, controls, video, audio
         self.previous_menu = "main"  # Önceki menüyü takip etmek için
 
+        # Ana menü arka plan görseli
+        self.background_image = None
+        try:
+            bg_path = os.path.join("assets", "pics", "Shura_Rebirth.jpeg")
+            if os.path.exists(bg_path):
+                self.background_image = pygame.image.load(bg_path)
+                # Ekran boyutuna göre ölçeklendir
+                self.background_image = pygame.transform.scale(self.background_image, (screen_width, screen_height))
+                print(f"Ana menü arka plan görseli yüklendi: {bg_path}")
+        except Exception as e:
+            print(f"Arka plan görseli yüklenirken hata oluştu: {e}")
+
         # Pixel font yükleme
         try:
             # Pixel font dosyasını bul
@@ -45,7 +57,7 @@ class Menu:
         self.main_menu_items = ["PLAY", "OPTIONS", "QUIT"]
         self.pause_menu_items = ["RESUME", "OPTIONS", "QUIT"]
         self.options_menu_items = ["CONTROLS", "VIDEO", "AUDIO", "BACK"]
-        self.video_menu_items = ["800x600", "1000x800", "1280x720", "1920x1080", "BACK"]
+        self.video_menu_items = ["800x600", "1000x800", "1280x720", "Full Screen", "BACK"]
         self.audio_menu_items = ["SFX", "MUSIC", "BACK"]
         self.selected_item = 0
 
@@ -54,7 +66,7 @@ class Menu:
         self.music_volume = 0.5
 
         # Video ayarları
-        self.resolutions = [(800, 600), (1000, 800), (1280, 720), (1920, 1080)]
+        self.resolutions = [(800, 600), (1000, 800), (1280, 720), "fullscreen"]
         self.current_resolution_index = 1  # Varsayılan 1000x800
 
         # Kontroller
@@ -102,6 +114,13 @@ class Menu:
             return self.draw_win_menu(win, sfx_manager)
 
     def draw_main_menu(self, win, sfx_manager=None):
+        # Arka plan görseli çiz
+        if self.background_image:
+            win.blit(self.background_image, (0, 0))
+        else:
+            # Arka plan görseli yoksa siyah arkaplan kullan
+            win.fill((0, 0, 0))
+
         # Başlık
         title_text = self.font_large.render("SHURA REBIRTH", True, self.title_color)
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
