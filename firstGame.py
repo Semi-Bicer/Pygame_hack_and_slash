@@ -144,7 +144,21 @@ def redrawGameWindow():
                     boss.has_dealt_damage = True
                     player.play_hurt_animation()
 
-    
+    # player ve boss'u harita sınırlarında ve zeminde tut
+    if player.rect.bottom < constants.screenHeight // 2:
+        player.y = constants.screenHeight // 2 - player.height
+    if player.rect.left < 0:
+        player.x = 0
+    if player.rect.right > constants.screenWidth:
+        player.x = constants.screenWidth - player.width
+
+    if boss.rect.bottom < constants.screenHeight // 2:
+        boss.y = boss.y
+    if boss.rect.left < 0:
+        boss.x = 0
+    if boss.rect.right > constants.screenWidth:
+        boss.x = constants.screenWidth - boss.width
+
     pygame.display.update()
 
 while run:

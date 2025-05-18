@@ -46,7 +46,6 @@ class SamuraiBackground:
             pygame.draw.line(self.sky_surface, color, (0, y), (self.width, y))
 
     def _create_petals(self, count):
-        """Uçuşan sakura yaprakları"""
         for _ in range(count):
             self.petals.append({
                 'x': random.randint(0, self.width),
@@ -58,7 +57,6 @@ class SamuraiBackground:
             })
 
     def _create_grass(self, count):
-        """Rüzgarda dalgalanan çimenler"""
         for _ in range(count):
             self.grass.append({
                 'x': random.randint(0, self.width),
@@ -69,7 +67,6 @@ class SamuraiBackground:
             })
 
     def _create_clouds(self, count):
-        """Yavaş hareket eden bulutlar"""
         for _ in range(count):
             self.clouds.append({
                 'x': random.randint(0, self.width),
@@ -79,7 +76,6 @@ class SamuraiBackground:
             })
 
     def _create_trees(self, count):
-        """Pixel art ağaçlar"""
         self.trees = []
         for _ in range(count):
             tree_x = random.randint(100, self.width - 100)
@@ -91,7 +87,6 @@ class SamuraiBackground:
             })
 
     def update(self):
-        """Tüm hareketli elementleri günceller"""
         # Yapraklar
         for petal in self.petals:
             petal['y'] += petal['speed']
@@ -112,8 +107,9 @@ class SamuraiBackground:
             if cloud['x'] > self.width + cloud['size']:
                 cloud['x'] = -cloud['size']
 
+        
+
     def draw(self, surface):
-        """Tüm arkaplanı çizer"""
         # Gökyüzü
         surface.blit(self.sky_surface, (0, 0))
 

@@ -21,8 +21,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # Karakter sabitleri
-CHAR_X                = 200  # Solda başlasın
-CHAR_Y                = 500  # Ayakları zemine hizalı
+CHAR_X                = 100  # Solda başlasın
+CHAR_Y                = screenHeight // 2 + 100  # Ayakları zemine hizalı
 CHAR_HEALTH           = 100
 CHAR_MAX_HEALTH       = 100
 CHAR_SPEED            = 6
@@ -42,8 +42,8 @@ CHAR_HEALING_COOLDOWN = 3000  # İyileştirme bekleme süresi (ms)
 BOSS_FRAME_WIDTH      = 128
 BOSS_FRAME_HEIGHT     = 108
 BOSS_NUM_FRAMES       = 6
-BOSS_START_X          = 800  # Sağda başlasın
-BOSS_START_Y          = 450  # Ayakları zemine hizalı
+BOSS_START_X          = screenWidth - 100  # Sağda başlasın
+BOSS_START_Y          = screenHeight // 2 + 100  # Ayakları zemine hizalı
 BOSS_SPEED            = 2.0
 BOSS_FOLLOW_DISTANCE  = 800
 BOSS_HEALTH           = 300
