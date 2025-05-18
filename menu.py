@@ -96,6 +96,10 @@ class Menu:
             return self.draw_video_menu(win, sfx_manager)
         elif self.current_menu == "audio":
             return self.draw_audio_menu(win, sfx_manager)
+        elif self.current_menu == "death":
+            return self.draw_death_menu(win, sfx_manager)
+        elif self.current_menu == "win":
+            return self.draw_win_menu(win, sfx_manager)
 
     def draw_main_menu(self, win, sfx_manager=None):
         # Başlık
@@ -403,6 +407,94 @@ class Menu:
 
         return [self.sfx_bar_rect, self.music_bar_rect, back_rect]
 
+    def draw_death_menu(self, win, sfx_manager=None):
+        # Başlık
+        title_text = self.font_large.render("GAME OVER", True, (255, 0, 0))  # Kırmızı renk
+        win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
+
+        # Menü öğeleri
+        menu_rects = []
+        y_pos = self.screen_height // 2
+        mouse_pos = pygame.mouse.get_pos()
+
+        # Ölüm menüsü öğeleri
+        death_menu_items = ["TRY AGAIN", "QUIT"]
+
+        # Önceki seçili öğeyi takip etmek için
+        last_selected = getattr(self, 'last_selected_death', -1)
+
+        for i, item in enumerate(death_menu_items):
+            # Fare imleci üzerinde mi kontrol et
+            text = self.font_medium.render(item, True, self.text_color)
+            text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
+            hover = text_rect.collidepoint(mouse_pos)
+
+            # Renk ve parlaklık ayarla
+            if hover:
+                color = self.hover_color  # Fare üzerindeyse parlak beyaz
+                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
+                if sfx_manager and i != last_selected:
+                    sfx_manager.play_sound("button_highlight")
+                    self.last_selected_death = i
+            else:
+                color = self.text_color  # Normal beyaz
+
+            # Sallantı efekti ekle (rastgele hafif hareket)
+            offset_x = random.randint(-1, 1)
+            offset_y = random.randint(-1, 1)
+
+            text = self.font_medium.render(item, True, color)
+            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
+            win.blit(text, text_rect)
+            menu_rects.append(text_rect)
+            y_pos += 70
+
+        return menu_rects
+
+    def draw_win_menu(self, win, sfx_manager=None):
+        # Başlık
+        title_text = self.font_large.render("YOU'VE DEFEATED THE ONI", True, (0, 255, 0))  # Yeşil renk
+        win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
+
+        # Menü öğeleri
+        menu_rects = []
+        y_pos = self.screen_height // 2
+        mouse_pos = pygame.mouse.get_pos()
+
+        # Zafer menüsü öğeleri
+        win_menu_items = ["TRY AGAIN", "QUIT"]
+
+        # Önceki seçili öğeyi takip etmek için
+        last_selected = getattr(self, 'last_selected_win', -1)
+
+        for i, item in enumerate(win_menu_items):
+            # Fare imleci üzerinde mi kontrol et
+            text = self.font_medium.render(item, True, self.text_color)
+            text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
+            hover = text_rect.collidepoint(mouse_pos)
+
+            # Renk ve parlaklık ayarla
+            if hover:
+                color = self.hover_color  # Fare üzerindeyse parlak beyaz
+                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
+                if sfx_manager and i != last_selected:
+                    sfx_manager.play_sound("button_highlight")
+                    self.last_selected_win = i
+            else:
+                color = self.text_color  # Normal beyaz
+
+            # Sallantı efekti ekle (rastgele hafif hareket)
+            offset_x = random.randint(-1, 1)
+            offset_y = random.randint(-1, 1)
+
+            text = self.font_medium.render(item, True, color)
+            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
+            win.blit(text, text_rect)
+            menu_rects.append(text_rect)
+            y_pos += 70
+
+        return menu_rects
+
     def handle_event(self, event, win_size=None, sfx_manager=None):
         # Menü öğelerinin dikdörtgenlerini al
         menu_rects = self.get_current_menu_rects(sfx_manager)
@@ -505,6 +597,10 @@ class Menu:
             return self.draw_video_menu(temp_surface, sfx_manager)
         elif self.current_menu == "audio":
             return self.draw_audio_menu(temp_surface, sfx_manager)
+        elif self.current_menu == "death":
+            return self.draw_death_menu(temp_surface, sfx_manager)
+        elif self.current_menu == "win":
+            return self.draw_win_menu(temp_surface, sfx_manager)
 
         return []
 
@@ -531,6 +627,10 @@ class Menu:
             return 3  # SFX, MUSIC, BACK
         elif self.current_menu == "controls":
             return 1  # Sadece BACK butonu
+        elif self.current_menu == "death":
+            return 2  # TRY AGAIN, QUIT
+        elif self.current_menu == "win":
+            return 2  # TRY AGAIN, QUIT
         return 0
 
     def select_current_item(self, win_size=None):
@@ -599,5 +699,11 @@ class Menu:
                 self.current_menu = "options"
                 self.selected_item = 0
                 return "back"
+
+        elif self.current_menu == "death" or self.current_menu == "win":
+            if self.selected_item == 0:  # TRY AGAIN
+                return "try_again"
+            elif self.selected_item == 1:  # QUIT
+                return "quit"
 
         return None

@@ -210,6 +210,21 @@ while run:
 
             if result == "resume":
                 game_paused = False
+            elif result == "try_again":
+                # Oyunu yeniden başlat
+                player.health = constants.CHAR_HEALTH
+                boss.health = constants.BOSS_HEALTH
+                boss.phase = 1  # Boss'un phase değerini sıfırla
+                boss.action = "idle"  # Boss'un action değerini sıfırla
+                boss.phase_transition = False  # Phase geçişini sıfırla
+                boss.invincible = False  # Yenilmezlik durumunu sıfırla
+                boss.attack_cooldown = 2000  # Attack cooldown'u sıfırla
+                boss.dash_speed = constants.BOSS_SPEED * 5  # Dash hızını sıfırla
+                player.x = constants.CHAR_X
+                player.y = constants.CHAR_Y
+                boss.x = constants.BOSS_START_X
+                boss.y = constants.BOSS_START_Y - 50
+                game_paused = False
             elif result == "back":
                 # Menüler arası geçiş için bir şey yapmaya gerek yok
                 # Menü sınıfı içinde current_menu zaten güncelleniyor
@@ -225,6 +240,18 @@ while run:
         elif event.type == pygame.MOUSEBUTTONDOWN and game_active and not game_paused:
             if event.button == 1:  # Sol tık ve oyun aktifse
                 sfx_manager.play_sound("attack1")                                                 # 💥 burdan yukarısı
+
+    # Karakter öldüğünde death menüsünü göster
+    if player.health <= 0:
+        game_paused = True
+        menu.current_menu = "death"
+        menu.selected_item = 0
+
+    # Boss öldüğünde win menüsünü göster
+    if boss.health <= 0 and boss.action == "death" and boss.frame_index >= len(boss.get_animation()) - 1:
+        game_paused = True
+        menu.current_menu = "win"
+        menu.selected_item = 0
 
     if not game_active or game_paused:
         menu_rects = menu.draw(win, constants, sfx_manager)                                                         #💥
