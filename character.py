@@ -432,8 +432,4 @@ class Character(object):
                 pygame.draw.rect(win, (0, 150, 255), (bar_x, bar_y, fill_width, bar_height))  # Mavi doluluk
 
 
-        # Game over text kaldırıldı - menu.py içinde yapılıyor
-
-        # Saldırı hitbox'ını her zaman göster (debug için)
-        if self.is_attacking or self.is_air_attacking:
-            pygame.draw.rect(win, constants.RED, self.attack_rect, 2)
+      

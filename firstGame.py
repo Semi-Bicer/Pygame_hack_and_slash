@@ -95,33 +95,25 @@ def redrawGameWindow():
     
     pygame.draw.rect(win, constants.RED, boss.rect, 1)
 
-    # Normal saldırı hasar kontrolü
     if player.is_attacking:
         pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
-
-        # Henüz hasar verilmemişse
         if player.frame_index == player.attack_frame and not player.has_dealt_damage:
-            # Çarpışma kontrolü
             if player.attack_rect.colliderect(boss.rect):
-                combo_damage = player.attack_damage * (1 + player.combo_count * 0.2)  # Her combo %20 daha fazla hasar
+                combo_damage = player.attack_damage * (1 + player.combo_count * 0.2)  
                 boss.take_damage(combo_damage)
                 player.has_dealt_damage = True
 
-    # Air attack hasar kontrolü
     elif player.is_air_attacking:
-        # Debug için attack_rect'i göster
+        # Debug için
         pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
 
-        # Hasar verme frame'inde ve henüz hasar verilmemişse
         if player.frame_index == player.air_attack_frame and not player.has_dealt_damage:
-            # Çarpışma kontrolü
             if player.attack_rect.colliderect(boss.rect):
                 boss.take_damage(player.air_attack_damage)
                 player.has_dealt_damage = True
 
     for bullet in bullets[:]:
         bullet.x += (bullet.vel * bullet.facing)
-
         # Ekran dışına çıkan mermiler
         if bullet.x > constants.screenWidth or bullet.x < 0:
             bullets.remove(bullet)
@@ -136,27 +128,23 @@ def redrawGameWindow():
 
         bullet.draw(win)
 
-    # Boss saldırısı
     if (boss.action.startswith("attack") or boss.action == "jump_attack"):
-        # Saldırı hitbox'ını göster (debug için)
+        # debug için
         pygame.draw.rect(win, (255, 0, 0), boss.attack_rect, 2)
 
-        # Saldırı frame'i kontrolü
         attack_key = boss.action
         if "_flame" in attack_key:
             attack_key = attack_key.replace("_flame", "")
 
         if attack_key in boss.attack_frames and boss.frame_index in boss.attack_frames[attack_key] and not boss.has_dealt_damage:
-            # Çarpışma kontrolü
             if boss.attack_rect.colliderect(player.rect):
                 if player.health > 0 and not boss.invincible:
                     dmg = constants.DAMAGE_BOSS_PHASE_2 if boss.phase == 2 else constants.DAMAGE_BOSS_PHASE_1
                     player.health -= dmg
                     boss.has_dealt_damage = True
-                    # Hurt animasyonunu başlat
                     player.play_hurt_animation()
 
-    #pygame.draw.rect(win, constants.RED, boss_rect, 2)
+    
     pygame.display.update()
 
 while run:
@@ -165,10 +153,9 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-            break                                                                                 #💥  burdan aşağısı
+            break                                                                                 
 
         if not game_active:
-            # Ana menü olaylarını işle
             result = menu.handle_event(event, (constants.screenWidth, constants.screenHeight), sfx_manager)
 
             if result == "play":
@@ -212,12 +199,12 @@ while run:
                 # Oyunu yeniden başlat
                 player.health = constants.CHAR_HEALTH
                 boss.health = constants.BOSS_HEALTH
-                boss.phase = 1  # Boss'un phase değerini sıfırla
-                boss.action = "idle"  # Boss'un action değerini sıfırla
-                boss.phase_transition = False  # Phase geçişini sıfırla
-                boss.invincible = False  # Yenilmezlik durumunu sıfırla
-                boss.attack_cooldown = 2000  # Attack cooldown'u sıfırla
-                boss.dash_speed = constants.BOSS_SPEED * 5  # Dash hızını sıfırla
+                boss.phase = 1 
+                boss.action = "idle"  
+                boss.phase_transition = False  
+                boss.invincible = False 
+                boss.attack_cooldown = 2000  
+                boss.dash_speed = constants.BOSS_SPEED * 5 
                 player.x = constants.CHAR_X
                 player.y = constants.CHAR_Y
                 boss.x = constants.BOSS_START_X
@@ -239,9 +226,8 @@ while run:
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
 
-                # Arkaplanı yeniden oluştur
+                
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
-                # Menü boyutlarını güncelle
                 menu = Menu(constants.screenWidth, constants.screenHeight)
                 # Pause menüsüne geri dön
                 menu.current_menu = "pause"
