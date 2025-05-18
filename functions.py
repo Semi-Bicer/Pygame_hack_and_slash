@@ -57,4 +57,4 @@ def load_single_image(image_path, scale=1.0):
         print(f"Error loading image from {image_path}: {e}")
     return frames
 
-# Menu functionality moved to menu.py
+#

@@ -16,7 +16,9 @@ class SoundManager:
         self.sfx_files = {
             "attack1": os.path.join("assets", "Sounds", "SFX", "attack1.mp3"),
             "bossAttack1": os.path.join("assets", "Sounds", "SFX", "bossAttack1.mp3"),
-            "shout": os.path.join("assets", "Sounds", "SFX", "shout.mp3")
+            "shout": os.path.join("assets", "Sounds", "SFX", "shout.mp3"),
+            "button_select": os.path.join("assets", "Sounds", "SFX", "button_select.mp3"),
+            "button_highlight": os.path.join("assets", "Sounds", "SFX", "button_highlight.mp3")
         }
 
         # Ayrı ses seviyeleri

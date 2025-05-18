@@ -82,6 +82,7 @@ menu = Menu(constants.screenWidth, constants.screenHeight)                      
 clock = pygame.time.Clock()
 run = True
 game_active = False
+game_paused = False  # Oyun duraklatıldı mı?
 start_button = None  # Start butonu için rect
 
 def redrawGameWindow():
@@ -180,11 +181,12 @@ while run:
             break                                                                                 #💥  burdan aşağısı
 
         if not game_active:
-            # Menü olaylarını işle
-            result = menu.handle_event(event, (constants.screenWidth, constants.screenHeight))
+            # Ana menü olaylarını işle
+            result = menu.handle_event(event, (constants.screenWidth, constants.screenHeight), sfx_manager)
 
             if result == "play":
                 game_active = True
+                game_paused = False
                 sfx_manager.stop_music(fade_ms=500)
                 # Menüdeki ses seviyesi ayarlarını kullan
                 sfx_manager.set_music_volume(menu.music_volume)
@@ -203,11 +205,29 @@ while run:
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
                 # Menü boyutlarını güncelle
                 menu = Menu(constants.screenWidth, constants.screenHeight)
-        elif event.type == pygame.MOUSEBUTTONDOWN and game_active:
+        elif game_paused:
+            # Pause menü olaylarını işle
+            result = menu.handle_event(event, (constants.screenWidth, constants.screenHeight), sfx_manager)
+
+            if result == "resume":
+                game_paused = False
+            elif result == "back":
+                # Menüler arası geçiş için bir şey yapmaya gerek yok
+                # Menü sınıfı içinde current_menu zaten güncelleniyor
+                pass
+            elif result == "quit":
+                run = False
+                break
+        elif event.type == pygame.KEYDOWN and game_active and not game_paused:
+            if event.key == pygame.K_ESCAPE:  # ESC tuşuna basıldığında pause menüsünü aç
+                game_paused = True
+                menu.current_menu = "pause"
+                menu.selected_item = 0
+        elif event.type == pygame.MOUSEBUTTONDOWN and game_active and not game_paused:
             if event.button == 1:  # Sol tık ve oyun aktifse
                 sfx_manager.play_sound("attack1")                                                 # 💥 burdan yukarısı
 
-    if not game_active:
+    if not game_active or game_paused:
         menu_rects = menu.draw(win, constants, sfx_manager)                                                         #💥
         pygame.display.update()
         continue
