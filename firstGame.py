@@ -11,7 +11,6 @@ from sfx import SoundManager
 
 pygame.init()
 
-
 win = pygame.display.set_mode((constants.screenWidth, constants.screenHeight))
 pygame.display.set_caption("Boss Fight")
 
@@ -234,16 +233,6 @@ while run:
 
     keys = pygame.key.get_pressed()
     clicks = pygame.mouse.get_pressed()
-
-    # Ölüm durumunda R tuşu ile oyunu yeniden başlat
-    if player.death_animation_finished and keys[pygame.K_r]:
-        # Oyunu yeniden başlat
-        player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)
-        player.set_sfx_manager(sfx_manager)
-        boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y - 50, player, sfx_manager)
-        bullets = []
-        continue
-
     player.move(keys, clicks)
 
     # Player'ın boss içerisine girmesini engelle
