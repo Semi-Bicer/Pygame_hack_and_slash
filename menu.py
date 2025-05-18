@@ -1,57 +1,25 @@
 import pygame
 import os
 import random
+import constants
 
 class Menu:
     def __init__(self, screen_width, screen_height):
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.current_menu = "main"  # main, options, controls, video, audio
-        self.previous_menu = "main"  # Önceki menüyü takip etmek için
+        self.current_menu = "main"              # main, options, controls, video, audio
+        self.previous_menu = "main"             # Önceki menüyü takip etmek için
 
-        # Ana menü arka plan görseli
         self.background_image = None
-        try:
-            bg_path = os.path.join("assets", "pics", "Shura_Rebirth.jpeg")
-            if os.path.exists(bg_path):
-                self.background_image = pygame.image.load(bg_path)
-                # Ekran boyutuna göre ölçeklendir
-                self.background_image = pygame.transform.scale(self.background_image, (screen_width, screen_height))
-                print(f"Ana menü arka plan görseli yüklendi: {bg_path}")
-        except Exception as e:
-            print(f"Arka plan görseli yüklenirken hata oluştu: {e}")
+        bg_path = os.path.join("assets", "pics", "Shura_Rebirth.jpeg")
+        if os.path.exists(bg_path):
+            self.background_image = pygame.image.load(bg_path)
+            self.background_image = pygame.transform.scale(self.background_image, (screen_width, screen_height))
 
-        # Pixel font yükleme
-        try:
-            # Pixel font dosyasını bul
-            font_path = os.path.join("assets", "fonts", "pixel.ttf")
-            # Eğer pixel.ttf bulunamazsa, klasördeki herhangi bir .ttf dosyasını kullan
-            if not os.path.exists(font_path):
-                font_dir = os.path.join("assets", "fonts")
-                if os.path.exists(font_dir):
-                    for file in os.listdir(font_dir):
-                        if file.endswith(".ttf"):
-                            font_path = os.path.join(font_dir, file)
-                            break
-
-            # Font dosyası bulunduysa yükle
-            if os.path.exists(font_path):
-                self.font_large = pygame.font.Font(font_path, 72)
-                self.font_medium = pygame.font.Font(font_path, 48)
-                self.font_small = pygame.font.Font(font_path, 24)
-                print(f"Pixel font yüklendi: {font_path}")
-            else:
-                # Fallback font
-                self.font_large = pygame.font.Font(None, 72)
-                self.font_medium = pygame.font.Font(None, 48)
-                self.font_small = pygame.font.Font(None, 24)
-                print("Pixel font bulunamadı, varsayılan font kullanılıyor.")
-        except Exception as e:
-            print(f"Font yüklenirken hata oluştu: {e}")
-            # Fallback font
-            self.font_large = pygame.font.Font(None, 72)
-            self.font_medium = pygame.font.Font(None, 48)
-            self.font_small = pygame.font.Font(None, 24)
+        font_path = os.path.join("assets", "fonts", "SchoonSquare-Regular.ttf")
+        self.font_large = pygame.font.Font(font_path, 72)
+        self.font_medium = pygame.font.Font(font_path, 48)
+        self.font_small = pygame.font.Font(font_path, 24)
 
         # Menü öğeleri
         self.main_menu_items = ["PLAY", "OPTIONS", "QUIT"]
@@ -72,16 +40,17 @@ class Menu:
         # Kontroller
         self.controls = {
             "Movement": "WASD",
+            "Run": "L-SHIFT",
+            "Dash": "SPACE",
             "Attack": "LMB",
-            "Shuriken": "V",
-            "Dash": "L-SHIFT"
+            "Shuriken": "V"
         }
 
         # Menü için renkler
-        self.text_color = (200, 200, 200)  # Normal beyaz
-        self.selected_color = (255, 255, 255)  # Parlak beyaz (seçili öğe için)
-        self.hover_color = (255, 255, 255)  # Parlak beyaz (hover için)
-        self.title_color = (255, 255, 255)  # Parlak beyaz (başlık için)
+        self.text_color = (200, 200, 200)       # Normal beyaz
+        self.selected_color = (255, 255, 255)   # Parlak beyaz (seçili öğe için)
+        self.hover_color = (255, 255, 255)      # Parlak beyaz (hover için)
+        self.title_color = (255, 255, 255)      # Parlak beyaz (başlık için)
 
         # Ses ayarı için çubuklar
         self.bar_width = 200
@@ -92,10 +61,8 @@ class Menu:
         self.dragging_music = False
 
     def draw(self, win, constants, sfx_manager=None):
-        # Tamamen siyah arkaplan
         win.fill(constants.BLACK)
 
-        # Menü durumuna göre çizim yap
         if self.current_menu == "main":
             return self.draw_main_menu(win, sfx_manager)
         elif self.current_menu == "pause":
@@ -114,12 +81,10 @@ class Menu:
             return self.draw_win_menu(win, sfx_manager)
 
     def draw_main_menu(self, win, sfx_manager=None):
-        # Arka plan görseli çiz
         if self.background_image:
             win.blit(self.background_image, (0, 0))
         else:
-            # Arka plan görseli yoksa siyah arkaplan kullan
-            win.fill((0, 0, 0))
+            win.fill(constants.BLACK)
 
         # Başlık
         title_text = self.font_large.render("SHURA REBIRTH", True, self.title_color)
@@ -139,17 +104,15 @@ class Menu:
             text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
             hover = text_rect.collidepoint(mouse_pos)
 
-            # Renk ve parlaklık ayarla
             if i == self.selected_item:
-                color = self.selected_color  # Seçili öğe için parlak beyaz
+                color = self.selected_color                         # Seçili öğe için parlak beyaz
             elif hover:
-                color = self.hover_color  # Fare üzerindeyse parlak beyaz
-                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
+                color = self.hover_color                            # Fare üzerindeyse parlak beyaz
                 if sfx_manager and i != last_selected:
                     sfx_manager.play_sound("button_highlight")
                     self.last_selected_main = i
             else:
-                color = self.text_color  # Normal beyaz
+                color = self.text_color
 
             # Sallantı efekti ekle (rastgele hafif hareket)
             offset_x = random.randint(-1, 1)
@@ -184,15 +147,14 @@ class Menu:
 
             # Renk ve parlaklık ayarla
             if i == self.selected_item:
-                color = self.selected_color  # Seçili öğe için parlak beyaz
+                color = self.selected_color
             elif hover:
-                color = self.hover_color  # Fare üzerindeyse parlak beyaz
-                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
+                color = self.hover_color
                 if sfx_manager and i != last_selected:
                     sfx_manager.play_sound("button_highlight")
                     self.last_selected_pause = i
             else:
-                color = self.text_color  # Normal beyaz
+                color = self.text_color
 
             # Sallantı efekti ekle (rastgele hafif hareket)
             offset_x = random.randint(-1, 1)
@@ -227,15 +189,14 @@ class Menu:
 
             # Renk ve parlaklık ayarla
             if i == self.selected_item:
-                color = self.selected_color  # Seçili öğe için parlak beyaz
+                color = self.selected_color
             elif hover:
-                color = self.hover_color  # Fare üzerindeyse parlak beyaz
-                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
+                color = self.hover_color
                 if sfx_manager and i != last_selected:
                     sfx_manager.play_sound("button_highlight")
                     self.last_selected_options = i
             else:
-                color = self.text_color  # Normal beyaz
+                color = self.text_color
 
             # Sallantı efekti ekle (rastgele hafif hareket)
             offset_x = random.randint(-1, 1)
@@ -318,15 +279,14 @@ class Menu:
 
             # Renk ve parlaklık ayarla
             if i == self.selected_item:
-                color = self.selected_color  # Seçili öğe için parlak beyaz
+                color = self.selected_color
             elif hover:
-                color = self.hover_color  # Fare üzerindeyse parlak beyaz
-                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
+                color = self.hover_color
                 if sfx_manager and i != last_selected:
                     sfx_manager.play_sound("button_highlight")
                     self.last_selected_video = i
             else:
-                color = self.text_color  # Normal beyaz
+                color = self.text_color
 
             # Sallantı efekti ekle (rastgele hafif hareket)
             offset_x = random.randint(-1, 1)
@@ -450,13 +410,13 @@ class Menu:
 
             # Renk ve parlaklık ayarla
             if hover:
-                color = self.hover_color  # Fare üzerindeyse parlak beyaz
+                color = self.hover_color
                 # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
                 if sfx_manager and i != last_selected:
                     sfx_manager.play_sound("button_highlight")
                     self.last_selected_death = i
             else:
-                color = self.text_color  # Normal beyaz
+                color = self.text_color
 
             # Sallantı efekti ekle (rastgele hafif hareket)
             offset_x = random.randint(-1, 1)
@@ -494,13 +454,13 @@ class Menu:
 
             # Renk ve parlaklık ayarla
             if hover:
-                color = self.hover_color  # Fare üzerindeyse parlak beyaz
+                color = self.hover_color
                 # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
                 if sfx_manager and i != last_selected:
                     sfx_manager.play_sound("button_highlight")
                     self.last_selected_win = i
             else:
-                color = self.text_color  # Normal beyaz
+                color = self.text_color
 
             # Sallantı efekti ekle (rastgele hafif hareket)
             offset_x = random.randint(-1, 1)
@@ -514,92 +474,7 @@ class Menu:
 
         return menu_rects
 
-    def handle_event(self, event, win_size=None, sfx_manager=None):
-        # Menü öğelerinin dikdörtgenlerini al
-        menu_rects = self.get_current_menu_rects(sfx_manager)
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                self.selected_item = (self.selected_item - 1) % self.get_current_menu_length()
-            elif event.key == pygame.K_DOWN:
-                self.selected_item = (self.selected_item + 1) % self.get_current_menu_length()
-            elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                # Seçim sesi çal
-                if sfx_manager:
-                    sfx_manager.play_sound("button_select")
-                return self.select_current_item(win_size)
-            elif event.key == pygame.K_ESCAPE:
-                # Geri dönme sesi çal
-                if sfx_manager:
-                    sfx_manager.play_sound("button_select")
-
-                # Pause menüsünde ESC tuşu RESUME gibi davransın
-                if self.current_menu == "pause":
-                    return "resume"
-                # Diğer menülerde ESC tuşu bir önceki menüye dönsün
-                elif self.current_menu != "main":
-                    # Alt menülerden options menüsüne dönüş
-                    if self.current_menu in ["controls", "video", "audio"]:
-                        self.current_menu = "options"
-                        self.selected_item = 0
-                        return "back"
-                    # Options menüsünden önceki menüye dönüş
-                    elif self.current_menu == "options":
-                        # Önceki menüye dön
-                        temp_menu = self.current_menu  # Geçici olarak mevcut menüyü sakla
-                        self.current_menu = self.previous_menu
-                        self.previous_menu = temp_menu  # Önceki menü artık options oldu
-                        self.selected_item = 0
-                        return "back"
-
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Sol tık
-                mouse_pos = pygame.mouse.get_pos()
-
-                # Ses çubukları için kontrol
-                if self.current_menu == "audio":
-                    if self.sfx_bar_rect.collidepoint(mouse_pos):
-                        self.dragging_sfx = True
-                        self.update_volume(mouse_pos[0], "sfx")
-                        return None
-                    elif self.music_bar_rect.collidepoint(mouse_pos):
-                        self.dragging_music = True
-                        self.update_volume(mouse_pos[0], "music")
-                        return None
-
-                # Menü öğelerine tıklama kontrolü
-                for i, rect in enumerate(menu_rects):
-                    if rect.collidepoint(mouse_pos):
-                        self.selected_item = i
-                        # Seçim sesi çal
-                        if sfx_manager:
-                            sfx_manager.play_sound("button_select")
-                        return self.select_current_item(win_size)
-
-        elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:  # Sol tık bırakıldı
-                self.dragging_sfx = False
-                self.dragging_music = False
-
-        elif event.type == pygame.MOUSEMOTION:
-            mouse_pos = pygame.mouse.get_pos()
-
-            # Sürüklenme işlemleri
-            if self.dragging_sfx:
-                self.update_volume(mouse_pos[0], "sfx")
-            elif self.dragging_music:
-                self.update_volume(mouse_pos[0], "music")
-
-            # Fare imlecinin üzerinde olduğu menü öğesini vurgula
-            for i, rect in enumerate(menu_rects):
-                if rect.collidepoint(mouse_pos):
-                    self.selected_item = i
-                    break
-
-        return None
-
     def get_current_menu_rects(self, sfx_manager=None):
-        """Mevcut menünün dikdörtgenlerini döndür"""
         # Boş bir yüzey oluştur
         temp_surface = pygame.Surface((self.screen_width, self.screen_height))
 
@@ -623,17 +498,88 @@ class Menu:
 
         return []
 
+    def handle_event(self, event, win_size=None, sfx_manager=None):
+        menu_rects = self.get_current_menu_rects(sfx_manager)
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.selected_item = (self.selected_item - 1) % self.get_current_menu_length()
+            elif event.key == pygame.K_DOWN:
+                self.selected_item = (self.selected_item + 1) % self.get_current_menu_length()
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                if sfx_manager:
+                    sfx_manager.play_sound("button_select")
+                return self.select_current_item(win_size)
+            elif event.key == pygame.K_ESCAPE:
+                if sfx_manager:
+                    sfx_manager.play_sound("button_select")
+
+                if self.current_menu == "pause":
+                    return "resume"
+
+                elif self.current_menu != "main":
+                    if self.current_menu in ["controls", "video", "audio"]:
+                        self.current_menu = "options"
+                        self.selected_item = 0
+                        return "back"
+
+                    elif self.current_menu == "options":
+                        temp_menu = self.current_menu
+                        self.current_menu = self.previous_menu
+                        self.previous_menu = temp_menu
+                        self.selected_item = 0
+                        return "back"
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                mouse_pos = pygame.mouse.get_pos()
+
+                if self.current_menu == "audio":
+                    if self.sfx_bar_rect.collidepoint(mouse_pos):
+                        self.dragging_sfx = True
+                        self.update_volume(mouse_pos[0], "sfx")
+                        return None
+                    elif self.music_bar_rect.collidepoint(mouse_pos):
+                        self.dragging_music = True
+                        self.update_volume(mouse_pos[0], "music")
+                        return None
+
+                for i, rect in enumerate(menu_rects):
+                    if rect.collidepoint(mouse_pos):
+                        self.selected_item = i
+                        if sfx_manager:
+                            sfx_manager.play_sound("button_select")
+                        return self.select_current_item(win_size)
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                self.dragging_sfx = False
+                self.dragging_music = False
+
+        elif event.type == pygame.MOUSEMOTION:
+            mouse_pos = pygame.mouse.get_pos()
+
+            if self.dragging_sfx:
+                self.update_volume(mouse_pos[0], "sfx")
+            elif self.dragging_music:
+                self.update_volume(mouse_pos[0], "music")
+
+            for i, rect in enumerate(menu_rects):
+                if rect.collidepoint(mouse_pos):
+                    self.selected_item = i
+                    break
+
+        return None
+
     def update_volume(self, x_pos, volume_type):
         if volume_type == "sfx":
             bar_rect = self.sfx_bar_rect
             relative_x = max(0, min(x_pos - bar_rect.left, bar_rect.width))
             self.sfx_volume = relative_x / bar_rect.width
-            print(f"SFX ses seviyesi güncellendi: {self.sfx_volume}")
         elif volume_type == "music":
             bar_rect = self.music_bar_rect
             relative_x = max(0, min(x_pos - bar_rect.left, bar_rect.width))
             self.music_volume = relative_x / bar_rect.width
-            print(f"MUSIC ses seviyesi güncellendi: {self.music_volume}")
 
     def get_current_menu_length(self):
         if self.current_menu == "main":
@@ -643,86 +589,81 @@ class Menu:
         elif self.current_menu == "video":
             return len(self.video_menu_items)
         elif self.current_menu == "audio":
-            return 3  # SFX, MUSIC, BACK
+            return 3                                    # SFX, MUSIC, BACK
         elif self.current_menu == "controls":
-            return 1  # Sadece BACK butonu
+            return 1                                    # BACK
         elif self.current_menu == "death":
-            return 2  # TRY AGAIN, QUIT
+            return 2                                    # TRY AGAIN, QUIT
         elif self.current_menu == "win":
-            return 2  # TRY AGAIN, QUIT
+            return 2                                    # TRY AGAIN, QUIT
         return 0
 
     def select_current_item(self, win_size=None):
         if self.current_menu == "main":
-            if self.selected_item == 0:  # PLAY
+            if self.selected_item == 0:                 # PLAY
                 return "play"
-            elif self.selected_item == 1:  # OPTIONS
+            elif self.selected_item == 1:               # OPTIONS
                 self.previous_menu = "main"
                 self.current_menu = "options"
                 self.selected_item = 0
                 return "options"
-            elif self.selected_item == 2:  # QUIT
+            elif self.selected_item == 2:               # QUIT
                 return "quit"
 
         elif self.current_menu == "pause":
-            if self.selected_item == 0:  # RESUME
+            if self.selected_item == 0:                 # RESUME
                 return "resume"
-            elif self.selected_item == 1:  # OPTIONS
-                self.previous_menu = "pause"  # Pause menüsünden geldiğimizi kaydet
+            elif self.selected_item == 1:               # OPTIONS
+                self.previous_menu = "pause"            # Pause'dan geldiğimizi kaydet
                 self.current_menu = "options"
                 self.selected_item = 0
                 return "options"
-            elif self.selected_item == 2:  # QUIT
+            elif self.selected_item == 2:               # QUIT
                 return "quit"
 
         elif self.current_menu == "options":
-            if self.selected_item == 0:  # CONTROLS
-                # previous_menu değişkenini güncelleme, options'tan geldiğimizi hatırlayalım
+            if self.selected_item == 0:                 # CONTROLS
                 self.current_menu = "controls"
                 self.selected_item = 0
                 return "controls"
             elif self.selected_item == 1:  # VIDEO
-                # previous_menu değişkenini güncelleme, options'tan geldiğimizi hatırlayalım
                 self.current_menu = "video"
                 self.selected_item = 0
                 return "video"
             elif self.selected_item == 2:  # AUDIO
-                # previous_menu değişkenini güncelleme, options'tan geldiğimizi hatırlayalım
                 self.current_menu = "audio"
                 self.selected_item = 0
                 return "audio"
             elif self.selected_item == 3:  # BACK
-                # Önceki menüye dön
                 self.current_menu = self.previous_menu
                 self.selected_item = 0
                 return "back"
 
         elif self.current_menu == "controls":
-            # Kontroller menüsünde sadece BACK butonu var
             self.current_menu = "options"
             self.selected_item = 0
             return "back"
 
         elif self.current_menu == "video":
-            if self.selected_item < len(self.resolutions):  # Bir çözünürlük seçildi
+            if self.selected_item < len(self.resolutions):
                 self.current_resolution_index = self.selected_item
                 if win_size:
                     return ("resolution", self.resolutions[self.selected_item])
-            elif self.selected_item == len(self.video_menu_items) - 1:  # BACK
+            elif self.selected_item == len(self.video_menu_items) - 1:
                 self.current_menu = "options"
                 self.selected_item = 0
                 return "back"
 
         elif self.current_menu == "audio":
-            if self.selected_item == 2:  # BACK
+            if self.selected_item == 2:
                 self.current_menu = "options"
                 self.selected_item = 0
                 return "back"
 
         elif self.current_menu == "death" or self.current_menu == "win":
-            if self.selected_item == 0:  # TRY AGAIN
+            if self.selected_item == 0:
                 return "try_again"
-            elif self.selected_item == 1:  # QUIT
+            elif self.selected_item == 1:
                 return "quit"
 
         return None
