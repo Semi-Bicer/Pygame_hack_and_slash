@@ -66,11 +66,29 @@ BOSS_ANIMATION_COOLDOWN = 100
 START_BUTTON_WIDTH = 200
 START_BUTTON_HEIGHT = 50
 
-# Renk paleti
-SAKURA_PINK = (255, 183, 197)
-SUNSET_ORANGE = (253, 94, 83)
-TREE_PURPLE = (54, 33, 89)
-SUN_YELLOW = (255, 159, 28)
-SKY_GRADIENT = [(32, 18, 59), (253, 94, 83), (255, 159, 28)]
-GROUND_GREEN = (45, 86, 44)
-TREE_BROWN = (48, 28, 19)
+# Renk paleti - Sakura vadisi için pastel gün batımı renkleri
+SAKURA_PINK = (255, 183, 197)  # Açık pembe
+SAKURA_DARK = (255, 150, 180)  # Orta pembe
+SAKURA_RED = (255, 120, 150)   # Koyu pembe/açık kırmızı
+SAKURA_WHITE = (255, 240, 245) # Beyazımsı pembe
+SUNSET_ORANGE = (253, 94, 83)  # Turuncu
+SUNSET_PINK = (255, 145, 175)  # Gün batımı pembesi
+SUNSET_YELLOW = (255, 190, 130) # Gün batımı sarısı
+SUN_YELLOW = (255, 200, 120)   # Daha yumuşak sarı
+
+# Pastel gün batımı gökyüzü gradienti
+SKY_GRADIENT = [(70, 40, 80), (180, 80, 110), (255, 190, 130)]
+
+# Zemin renkleri
+GROUND_PINK = (255, 230, 240)  # Sakura çiçekleriyle kaplı zemin
+TREE_BROWN = (80, 50, 35)      # Daha koyu ağaç gövdesi
+
+# Sis ve bulut renkleri
+MIST_COLORS = [(255, 255, 255, 40), (255, 240, 250, 30), (255, 230, 240, 20)]
+CLOUD_COLORS = [(255, 230, 240, 60), (255, 220, 230, 50), (255, 210, 220, 40)]
+
+# Sakura yaprak renkleri - daha kırmızımsı tonlar
+SAKURA_COLORS = [(255, 120, 150), (255, 100, 130), (255, 80, 120), (255, 60, 100), (255, 40, 80)]
+
+# Dağ silueti renkleri
+MOUNTAIN_COLORS = [(80, 50, 80), (100, 60, 90), (120, 70, 100)]
