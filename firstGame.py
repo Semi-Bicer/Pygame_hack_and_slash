@@ -24,6 +24,7 @@ bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
 
 bullets = []
 
+
 # Oyuncu
 player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)
 player.set_sfx_manager(sfx_manager)
