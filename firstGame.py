@@ -167,7 +167,7 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-            break                                                                                 
+            break
 
         if not game_active:
             result = menu.handle_event(event, (constants.screenWidth, constants.screenHeight), sfx_manager)
