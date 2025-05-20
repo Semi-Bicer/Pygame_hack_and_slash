@@ -7,7 +7,6 @@ screenWidth = 1000
 screenHeight = 800
 scale = 2
 
-
 # Font ve ses yolları
 FONT_PATH = os.path.join("assets", "fonts", "SchoonSquare-Regular.ttf")
 SFX_PATH = os.path.join("assets", "sfx")
