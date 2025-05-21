@@ -82,12 +82,16 @@ game_active = False
 game_paused = False
 start_button = None
 
+# Intro değişkenleri
+intro_active = False
+intro_start_time = 0
+intro_duration = 15000  # 14 saniye (ms cinsinden)
+
 def redrawGameWindow():
     bg.update()
     bg.draw(win)
     # win.blit(bg, (0, 0))
 
-    boss.update(player)
     boss.draw(win)
     player.draw(win, font)
     player.update()
@@ -187,6 +191,10 @@ while run:
             if result == "play":
                 game_active = True
                 game_paused = False
+                intro_active = True
+                intro_start_time = pygame.time.get_ticks()
+                # Arkaplan intro modunu aktifleştir
+                bg.set_intro_active(True)
                 sfx_manager.stop_music(fade_ms=500)
                 # Menüdeki ses seviyesi ayarlarını kullan
                 sfx_manager.set_music_volume(menu.music_volume)
@@ -291,12 +299,44 @@ while run:
         pygame.display.update()
         continue
 
+    # Intro kontrolü
+    current_time = pygame.time.get_ticks()
+    if intro_active:
+        # Intro süresi doldu mu kontrol et
+        if current_time - intro_start_time > intro_duration:
+            intro_active = False
+            # Arkaplan intro modunu devre dışı bırak
+            bg.set_intro_active(False)
+        else:
+            # Intro sırasında karakterler hareket edemez
+            # Sadece arkaplan ve intro metni gösterilir
+            redrawGameWindow()
+
+            # Intro metni
+            font_large = pygame.font.Font(constants.FONT_PATH, 72)
+            intro_text = font_large.render("SAMURAI FIGHT", True, constants.WHITE)
+            win.blit(intro_text, (constants.screenWidth // 2 - intro_text.get_width() // 2, constants.screenHeight // 3))
+
+            # Kalan süre
+            remaining_time = (intro_duration - (current_time - intro_start_time)) // 1000
+            if remaining_time > 0:
+                time_text = font.render(f"Battle begins in {remaining_time}...", True, constants.WHITE)
+                win.blit(time_text, (constants.screenWidth // 2 - time_text.get_width() // 2, constants.screenHeight // 2))
+
+            pygame.display.update()
+            continue
+
     keys = pygame.key.get_pressed()
     clicks = pygame.mouse.get_pressed()
     player.move(keys, clicks)
 
-    # Player'ın boss içerisine girmesini engelle
-    boss.collision_with_player(player)
+    # Intro sırasında boss hareket etmez
+    if not intro_active:
+        # Player'ın boss içerisine girmesini engelle
+        boss.collision_with_player(player)
+
+        # Boss'un hareketleri ve saldırıları
+        boss.update(player)
 
     # V tuşuna basıldığında shuriken fırlat
     if keys[pygame.K_v]:
