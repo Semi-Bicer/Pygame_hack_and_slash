@@ -18,6 +18,7 @@ class Character(object):
         attack3 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 3.png"), 96, 84, 6)
         hurt = load_and_scale_sheet(os.path.join(assets_path, "HURT.png"), 96, 84, 4)
         healing = load_and_scale_sheet(os.path.join(assets_path, "HEALING.png"), 96, 84, 15)
+        defend = load_and_scale_sheet(os.path.join(assets_path, "DEFEND.png"), 96, 84, 6)
         combo_attack = []
         combo_attack.extend(attack1)
         combo_attack.extend(attack2)
@@ -25,8 +26,8 @@ class Character(object):
         air_attack = load_and_scale_sheet(os.path.join(assets_path, "AIR ATTACK.png"), 96, 84, 6)
 
         throw = load_and_scale_sheet(os.path.join(assets_path, "THROW.png"), 96, 84, 7)
-        # 0: idle, 1: walk, 2: run, 3: dash, 4: combo_attack, 5: throw, 6: air_attack
-        animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack, hurt, healing]
+        # 0: idle, 1: walk, 2: run, 3: dash, 4: combo_attack, 5: throw, 6: air_attack, 7: hurt, 8: healing, 9: defend
+        animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack, hurt, healing, defend]
         return animation_list
 
     @staticmethod
@@ -91,6 +92,14 @@ class Character(object):
         self.healing_cooldown = constants.CHAR_HEALING_COOLDOWN
         self.healing_amount = constants.CHAR_HEALING_AMOUNT
         self.healing_frame_duration = 70  # ms cinsinden healing animasyonu süresi
+
+        # Parry (savunma) mekanizması
+        self.is_parrying = False
+        self.parry_duration = 500  # 0.5 saniye parry süresi
+        self.parry_cooldown = 1000  # 1 saniye cooldown
+        self.last_parry_time = 0
+        self.parry_start_time = 0
+        self.parry_successful = False  # Başarılı parry durumu
         # Saldırı için hitbox
         self.attack_rect = pygame.Rect(0, 0, 80, 80)  # Saldırı hitbox'ı - daha büyük yapıldı
         # Animasyon kontrol
@@ -127,6 +136,21 @@ class Character(object):
             self.is_hurt = True
             self.hurt_start_time = pygame.time.get_ticks()
             self.frame_index = 0
+
+    def successful_parry(self):
+        """Parry başarılı olduğunda çağrılır"""
+        if self.is_parrying and self.frame_index == 0:  # Sadece parry'nin ilk frame'inde başarılı olabilir
+            self.parry_successful = True
+            if self.sfx_manager:
+                self.sfx_manager.play_sound("parry")
+
+    def parry_hit(self):
+        """Parry sırasında hasar alındığında çağrılır"""
+        if self.is_parrying:
+            # Parry sırasında hasar alındığında tüm animasyonu oynat
+            self.parry_successful = True
+            if self.sfx_manager:
+                self.sfx_manager.play_sound("parry")
 
     def start_healing(self):
         current_time = pygame.time.get_ticks()
@@ -237,12 +261,24 @@ class Character(object):
             if self.sfx_manager:
                 self.sfx_manager.play_sound("attack1")
 
+        # Parry (sağ tık ile)
+        if clicks[2]:  # right mouse click
+            current_time = pygame.time.get_ticks()
+
+            # Eğer parry cooldown süresi geçtiyse ve başka bir aksiyon yoksa
+            if not self.is_parrying and not self.is_attacking and not self.is_air_attacking and not self.is_throwing and not self.is_hurt and current_time - self.last_parry_time > self.parry_cooldown:
+                self.is_parrying = True
+                self.parry_start_time = current_time
+                self.last_parry_time = current_time
+                self.frame_index = 0  # Animasyonu baştan başlat
+                self.parry_successful = False  # Başlangıçta başarısız
+
         # Normal saldırı (sol tık ile)
         if clicks[0]: # left mouse click
             current_time = pygame.time.get_ticks()
 
             # Eğer saldırı yapılmıyorsa ve cooldown geçtiyse
-            if not self.is_attacking and not self.is_air_attacking and current_time - self.last_attack_time > self.attack_cooldown:
+            if not self.is_attacking and not self.is_air_attacking and not self.is_parrying and current_time - self.last_attack_time > self.attack_cooldown:
                 self.is_attacking = True
                 self.last_attack_time = current_time
 
@@ -271,6 +307,8 @@ class Character(object):
             self.update_action(7)  # 7: hurt animasyonu
         elif self.is_healing:
             self.update_action(8)  # 8: healing animasyonu
+        elif self.is_parrying:
+            self.update_action(9)  # 9: defend (parry) animasyonu
         elif self.is_throwing:
             self.update_action(5)  # 5: throw animasyonu
         elif self.is_air_attacking:
@@ -293,7 +331,7 @@ class Character(object):
 
         animation_cooldown = constants.CHAR_ANIM_COOLDOWN_MS
 
-        if self.is_hurt:  
+        if self.is_hurt:
             self.image = self.animation_list[7][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                 self.last_update = pygame.time.get_ticks()
@@ -302,7 +340,7 @@ class Character(object):
                 if self.frame_index == 0:
                     self.is_hurt = False
 
-        elif self.is_healing: 
+        elif self.is_healing:
             self.image = self.animation_list[8][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.healing_frame_duration:
                 #print(f"Healing frame: {self.frame_index}")
@@ -314,7 +352,23 @@ class Character(object):
                 else:
                     self.frame_index += 1
 
-        elif self.is_throwing:  
+        elif self.is_parrying:
+            self.image = self.animation_list[9][self.frame_index]
+            if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
+                self.last_update = pygame.time.get_ticks()
+
+                # Eğer başarılı parry olduysa tüm animasyonu oynat
+                if self.parry_successful:
+                    if self.frame_index < len(self.animation_list[9]) - 1:
+                        self.frame_index += 1
+                    else:
+                        self.is_parrying = False
+                # Başarısız parry durumunda sadece ilk frame'i göster ve idle'a dön
+                elif self.frame_index == 0:
+                    # Sadece ilk frame'i göster ve orada kal
+                    pass  # Parry süresi dolana kadar bekle, sonra update metodu içindeki kontrol ile idle'a dönecek
+
+        elif self.is_throwing:
             self.image = self.animation_list[5][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.throw_frame_duration:
                 self.last_update = pygame.time.get_ticks()
@@ -323,12 +377,12 @@ class Character(object):
                 if self.frame_index == 0:
                     self.is_throwing = False
 
-        elif self.is_air_attacking:  
+        elif self.is_air_attacking:
             self.image = self.animation_list[6][self.frame_index]
             if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
                 self.last_update = pygame.time.get_ticks()
                 self.frame_index = (self.frame_index + 1) % len(self.animation_list[6])
-                       
+
                 if self.frame_index == 0:
                     self.is_air_attacking = False
 
@@ -347,9 +401,9 @@ class Character(object):
 
             if pygame.time.get_ticks() - self.last_update >= self.attack_frame_duration:
                 self.last_update = pygame.time.get_ticks()
-                self.frame_index = (self.frame_index + 1) % 6 
+                self.frame_index = (self.frame_index + 1) % 6
 
-                
+
                 if self.frame_index == 0:
                     self.is_attacking = False
 
@@ -398,6 +452,13 @@ class Character(object):
         if self.is_hurt and current_time - self.hurt_start_time > self.hurt_duration:
             self.is_hurt = False
 
+        # Parry süresi kontrolü
+        if self.is_parrying and current_time - self.parry_start_time > self.parry_duration:
+            self.is_parrying = False
+            # Başarılı parry olmadıysa ve ilk frame'den sonra idle'a dön
+            if not self.parry_successful and self.frame_index > 0:
+                self.frame_index = 0
+
 
 
 
@@ -432,4 +493,3 @@ class Character(object):
                 pygame.draw.rect(win, (0, 150, 255), (bar_x, bar_y, fill_width, bar_height))  # Mavi doluluk
 
 
-      
