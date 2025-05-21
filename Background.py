@@ -16,14 +16,17 @@ class SamuraiBackground:
 
         # Hareketli elementler
         self.petals = []  # Sakura yaprakları
+        self.intro_petals = []  # Intro için ekstra yapraklar
         self.fallen_petals = []  # Yere düşmüş çiçekler
         self.mist = []  # Hafif sis efekti
         self.clouds = []  # Bulutlar
         self.mountains = []  # Dağ siluetleri
         self.grass = []  # Rüzgarda hareket eden çimenler
+        self.intro_active = False  # Intro durumu
 
         # Elementleri oluştur
-        self._create_petals(300)  # Daha az uçuşan yaprak
+        self._create_petals(300)  # Normal uçuşan yapraklar
+        self._create_intro_petals(600)  # Intro için ekstra yapraklar (2 kat daha fazla)
         self._create_fallen_petals(300)  # Yere düşmüş çiçekler
         self._create_mist(20)  # Hafif sis efekti
         self._create_clouds(8)  # Daha fazla bulut
@@ -163,6 +166,20 @@ class SamuraiBackground:
                 'color': random.choice(constants.SAKURA_COLORS)  # Sakura renkleri
             })
 
+    def _create_intro_petals(self, count):
+        """Intro için sağdan sola doğru uçuşan ekstra yapraklar oluşturur"""
+        for _ in range(count):
+            self.intro_petals.append({
+                'x': random.randint(self.width, self.width + 500),  # Sağ taraftan başla
+                'y': random.randint(0, self.height),  # Tüm ekran yüksekliği boyunca
+                'speed_x': random.uniform(-5.0, -2.0),  # Sola doğru hızlı hareket
+                'speed_y': random.uniform(-0.5, 0.5),  # Hafif yukarı-aşağı hareket
+                'size': random.randint(3, 7),  # Daha büyük yapraklar
+                'angle': random.uniform(0, 6.28),
+                'rot_speed': random.uniform(-0.1, 0.1),  # Hızlı dönüş
+                'color': random.choice(constants.SAKURA_COLORS)  # Sakura renkleri
+            })
+
     def _create_grass(self, count):
         # Çok daha fazla çimen ekle - tüm oynanabilir alan boyunca
         for _ in range(count * 10):  # Çimen sayısını 10 kat artır
@@ -228,8 +245,18 @@ class SamuraiBackground:
                 'branch_count': random.randint(6, 10)  # Daha fazla dal
             })
 
+    def set_intro_active(self, active):
+        """Intro modunu aktif veya pasif yapar"""
+        self.intro_active = active
+
+        # Intro aktifleştirildiğinde, intro yapraklarını yeniden konumlandır
+        if active:
+            for petal in self.intro_petals:
+                petal['x'] = random.randint(self.width, self.width + 500)
+                petal['y'] = random.randint(0, self.height)
+
     def update(self):
-        # Yapraklar
+        # Normal yapraklar
         for petal in self.petals:
             petal['y'] += petal['speed']
             petal['x'] += math.sin(petal['angle']) * 0.5
@@ -238,6 +265,18 @@ class SamuraiBackground:
             if petal['y'] > self.height:
                 petal['y'] = random.randint(-50, -10)
                 petal['x'] = random.randint(0, self.width)
+
+        # Intro yaprakları (sadece intro aktifse gösterilir)
+        if self.intro_active:
+            for petal in self.intro_petals:
+                petal['x'] += petal['speed_x']
+                petal['y'] += petal['speed_y']
+                petal['angle'] += petal['rot_speed']
+
+                # Ekranın solundan çıktıysa sağ tarafa geri gönder
+                if petal['x'] < -50:
+                    petal['x'] = self.width + random.randint(0, 100)
+                    petal['y'] = random.randint(0, self.height)
 
         # Yere düşmüş çiçekler - hafif hareket
         for petal in self.fallen_petals:
@@ -475,7 +514,7 @@ class SamuraiBackground:
             # Rastgele tohumu sıfırla
             random.seed()
 
-        # Sakura yaprakları (en üst katman)
+        # Normal sakura yaprakları
         for petal in self.petals:
             # Dönen yaprak efekti - sakura yaprağı şeklinde
             s = pygame.Surface((petal['size'] * 2, petal['size'] * 2), pygame.SRCALPHA)
@@ -505,3 +544,35 @@ class SamuraiBackground:
             # Döndür ve ekrana çiz
             rotated = pygame.transform.rotate(s, petal['angle'] * 57.29)  # Radyan->Derece
             surface.blit(rotated, (petal['x'], petal['y']))
+
+        # Intro yaprakları (sadece intro aktifse gösterilir)
+        if self.intro_active:
+            for petal in self.intro_petals:
+                # Dönen yaprak efekti - sakura yaprağı şeklinde
+                s = pygame.Surface((petal['size'] * 2, petal['size'] * 2), pygame.SRCALPHA)
+
+                # Sakura yaprağı şekli - 5 yapraklı çiçek
+                center_x, center_y = petal['size'], petal['size']
+                radius = petal['size']
+
+                # Yaprak rengi
+                color = petal['color']
+
+                # 5 yapraklı çiçek çiz
+                for i in range(5):
+                    angle = i * (2 * math.pi / 5)
+                    x = center_x + math.cos(angle) * radius * 0.8
+                    y = center_y + math.sin(angle) * radius * 0.8
+
+                    # Oval yaprak çiz
+                    pygame.draw.ellipse(s, (*color, 200),  # %80 opacity
+                                      (center_x - radius/2, center_y - radius/2, radius, radius))
+                    pygame.draw.ellipse(s, (*color, 180),  # %70 opacity
+                                      (x - radius/2, y - radius/2, radius, radius))
+
+                # Yaprağın ortasına küçük sarı merkez ekle
+                pygame.draw.circle(s, (255, 255, 150, 220), (center_x, center_y), radius/5)
+
+                # Döndür ve ekrana çiz
+                rotated = pygame.transform.rotate(s, petal['angle'] * 57.29)  # Radyan->Derece
+                surface.blit(rotated, (petal['x'], petal['y']))

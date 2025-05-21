@@ -8,7 +8,7 @@ class SoundManager:
 
         self.music_files = {
             "menu": os.path.join("assets", "Sounds", "MUSIC", "menu_music.mp3"),
-            "battle": os.path.join("assets", "Sounds", "MUSIC", "battle_music.mp3")
+            "battle": os.path.join("assets", "Sounds", "MUSIC", "battle_music_2.mp3")
         }
 
         self.sfx_files = {
