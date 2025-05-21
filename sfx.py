@@ -16,7 +16,8 @@ class SoundManager:
             "bossAttack1": os.path.join("assets", "Sounds", "SFX", "bossAttack1.mp3"),
             "shout": os.path.join("assets", "Sounds", "SFX", "shout.mp3"),
             "button_select": os.path.join("assets", "Sounds", "SFX", "button_select.mp3"),
-            "button_highlight": os.path.join("assets", "Sounds", "SFX", "button_highlight.mp3")
+            "button_highlight": os.path.join("assets", "Sounds", "SFX", "button_highlight.mp3"),
+            "parry": os.path.join("assets", "Sounds", "SFX", "defend.mp3")
         }
 
         self.music_volume = 0.5

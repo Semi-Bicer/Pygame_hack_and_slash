@@ -10,11 +10,24 @@ class Menu:
         self.current_menu = "main"              # main, options, controls, video, audio
         self.previous_menu = "main"             # Önceki menüyü takip etmek için
 
+        # Ana menü arka plan görseli
         self.background_image = None
         bg_path = os.path.join("assets", "pics", "Shura_Rebirth.jpeg")
         if os.path.exists(bg_path):
             self.background_image = pygame.image.load(bg_path)
             self.background_image = pygame.transform.scale(self.background_image, (screen_width, screen_height))
+
+        # Ölüm ekranı arka plan görseli
+        self.death_image = None
+        death_path = os.path.join("assets", "pics", "Death.jpeg")
+        if os.path.exists(death_path):
+            self.death_image = pygame.image.load(death_path)
+
+        # Kazanma ekranı arka plan görseli
+        self.win_image = None
+        win_path = os.path.join("assets", "pics", "Win.jpeg")
+        if os.path.exists(win_path):
+            self.win_image = pygame.image.load(win_path)
 
         font_path = os.path.join("assets", "fonts", "SchoonSquare-Regular.ttf")
         self.font_large = pygame.font.Font(font_path, 72)
@@ -43,6 +56,7 @@ class Menu:
             "Run": "L-SHIFT",
             "Dash": "SPACE",
             "Attack": "LMB",
+            "Parry": "RMB",
             "Shuriken": "V",
             "Healing" : "E"
         }
@@ -388,13 +402,28 @@ class Menu:
         return [self.sfx_bar_rect, self.music_bar_rect, back_rect]
 
     def draw_death_menu(self, win, sfx_manager=None):
+        # Arka planı siyah yap
+        win.fill(constants.BLACK)
+
+        # Ölüm görselini ortalayarak çiz
+        if self.death_image:
+            # Görselin boyutlarını al
+            img_width, img_height = self.death_image.get_size()
+
+            # Görseli ekranın ortasına yerleştir
+            x_pos = (self.screen_width - img_width) // 2
+            y_pos = (self.screen_height - img_height) // 2
+
+            # Görseli çiz
+            win.blit(self.death_image, (x_pos, y_pos))
+
         # Başlık
         title_text = self.font_large.render("GAME OVER", True, (255, 0, 0))  # Kırmızı renk
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
         # Menü öğeleri
         menu_rects = []
-        y_pos = self.screen_height // 2
+        y_pos = self.screen_height - 200  # Butonları daha aşağıya yerleştir
         mouse_pos = pygame.mouse.get_pos()
 
         # Ölüm menüsü öğeleri
@@ -432,13 +461,28 @@ class Menu:
         return menu_rects
 
     def draw_win_menu(self, win, sfx_manager=None):
+        # Arka planı siyah yap
+        win.fill(constants.BLACK)
+
+        # Kazanma görselini ortalayarak çiz
+        if self.win_image:
+            # Görselin boyutlarını al
+            img_width, img_height = self.win_image.get_size()
+
+            # Görseli ekranın ortasına yerleştir
+            x_pos = (self.screen_width - img_width) // 2
+            y_pos = (self.screen_height - img_height) // 2
+
+            # Görseli çiz
+            win.blit(self.win_image, (x_pos, y_pos))
+
         # Başlık
         title_text = self.font_large.render("YOU'VE DEFEATED THE ONI", True, (0, 255, 0))  # Yeşil renk
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
         # Menü öğeleri
         menu_rects = []
-        y_pos = self.screen_height // 2
+        y_pos = self.screen_height - 200  # Butonları daha aşağıya yerleştir
         mouse_pos = pygame.mouse.get_pos()
 
         # Zafer menüsü öğeleri

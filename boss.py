@@ -305,6 +305,35 @@ class Boss:
         if self.action == "attack1" and self.sfx_manager:
             self.sfx_manager.play_sound("bossAttack1")
 
+    def check_parry(self, player):
+        """Player'in parry durumunu kontrol eder ve başarılı parry durumunda boss'u durdurur"""
+        # Eğer boss saldırı durumundaysa ve player parry yapıyorsa
+        if (self.action.startswith("attack") or self.action == "jump_attack" or
+            self.action.startswith("attack_flame") or self.action == "jump_attack_flame") and player.is_parrying:
+
+            # Saldırı frame'lerinde mi kontrol et
+            attack_key = self.action
+            if "_flame" in attack_key:
+                attack_key = attack_key.replace("_flame", "")
+
+            if attack_key in self.attack_frames and self.frame_index in self.attack_frames[attack_key]:
+                # Saldırı hitbox'ları çarpışıyor mu kontrol et
+                if self.attack_rect.colliderect(player.rect):
+                    # Başarılı parry
+                    player.successful_parry()
+
+                    # Boss'u idle durumuna getir
+                    self.action = "idle_flame" if self.phase == 2 else "idle"
+                    self.frame_index = 0
+                    self.has_dealt_damage = False
+
+                    # Ses efekti çal
+                    if self.sfx_manager:
+                        self.sfx_manager.play_sound("parry")
+
+                    return True
+        return False
+
     def collision_with_player(self, player):
         # Boss ve player hitbox'ları çarpışıyorsa
         if self.rect.colliderect(player.rect):

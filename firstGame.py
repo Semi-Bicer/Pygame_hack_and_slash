@@ -79,8 +79,8 @@ menu = Menu(constants.screenWidth, constants.screenHeight)                      
 clock = pygame.time.Clock()
 run = True
 game_active = False
-game_paused = False  
-start_button = None  
+game_paused = False
+start_button = None
 
 def redrawGameWindow():
     bg.update()
@@ -92,14 +92,13 @@ def redrawGameWindow():
     player.draw(win, font)
     player.update()
 
-    
     #pygame.draw.rect(win, constants.RED, boss.rect, 1)
 
     if player.is_attacking:
         #pygame.draw.rect(win, (0, 255, 0), player.attack_rect, 2)
         if player.frame_index == player.attack_frame and not player.has_dealt_damage:
             if player.attack_rect.colliderect(boss.rect):
-                combo_damage = player.attack_damage * (1 + player.combo_count * 0.2)  
+                combo_damage = player.attack_damage * (1 + player.combo_count * 0.2)
                 boss.take_damage(combo_damage)
                 player.has_dealt_damage = True
 
@@ -128,7 +127,11 @@ def redrawGameWindow():
 
         bullet.draw(win)
 
-    if (boss.action.startswith("attack") or boss.action == "jump_attack"):
+    # Parry kontrolü
+    if boss.check_parry(player):
+        # Başarılı parry durumunda hasar verilmez
+        pass
+    elif (boss.action.startswith("attack") or boss.action == "jump_attack"):
         # debug için
         #pygame.draw.rect(win, (255, 0, 0), boss.attack_rect, 2)
 
@@ -142,7 +145,12 @@ def redrawGameWindow():
                     dmg = constants.DAMAGE_BOSS_PHASE_2 if boss.phase == 2 else constants.DAMAGE_BOSS_PHASE_1
                     player.health -= dmg
                     boss.has_dealt_damage = True
-                    player.play_hurt_animation()
+
+                    # Eğer parry sırasında hasar alındıysa parry_hit fonksiyonunu çağır
+                    if player.is_parrying:
+                        player.parry_hit()
+                    else:
+                        player.play_hurt_animation()
 
     # player ve boss'u harita sınırlarında ve zeminde tut
     if player.rect.bottom < constants.screenHeight // 2:
@@ -217,12 +225,12 @@ while run:
                 # Oyunu yeniden başlat
                 player.health = constants.CHAR_HEALTH
                 boss.health = constants.BOSS_HEALTH
-                boss.phase = 1 
-                boss.action = "idle"  
-                boss.phase_transition = False  
-                boss.invincible = False 
-                boss.attack_cooldown = 2000  
-                boss.dash_speed = constants.BOSS_SPEED * 5 
+                boss.phase = 1
+                boss.action = "idle"
+                boss.phase_transition = False
+                boss.invincible = False
+                boss.attack_cooldown = 2000
+                boss.dash_speed = constants.BOSS_SPEED * 5
                 player.x = constants.CHAR_X
                 player.y = constants.CHAR_Y
                 boss.x = constants.BOSS_START_X
@@ -244,7 +252,7 @@ while run:
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
 
-                
+
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
                 menu = Menu(constants.screenWidth, constants.screenHeight)
                 # Pause menüsüne geri dön
