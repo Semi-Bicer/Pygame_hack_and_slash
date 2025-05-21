@@ -189,6 +189,10 @@ class Character(object):
     def move(self, keys, clicks):
         self.walking = False
 
+        # Parry sırasında hareket etmeyi engelle
+        if self.is_parrying:
+            return
+
         self.horizontal = int(keys[pygame.K_d]) - int(keys[pygame.K_a])
         self.vertical   = int(keys[pygame.K_s]) - int(keys[pygame.K_w])
 
@@ -224,8 +228,8 @@ class Character(object):
         if current_time - self.last_dash_time >= self.dash_cooldown:
             self.can_dash = True
 
-        # Dash movement
-        if keys[pygame.K_SPACE] and self.can_dash and not self.isDashing:
+        # Dash movement (parry sırasında dash yapamaz)
+        if keys[pygame.K_SPACE] and self.can_dash and not self.isDashing and not self.is_parrying:
             self.isDashing = True
             self.can_dash = False
             self.last_dash_time = current_time # Cooldown için kullanılıyor
@@ -251,8 +255,8 @@ class Character(object):
         if self.can_air_attack and current_time - self.dash_start_time > self.air_attack_window:
             self.can_air_attack = False
 
-        # Air attack (F tuşu ile)
-        if clicks[2] and self.can_air_attack and not self.is_air_attacking and not self.is_attacking:
+        # Air attack (F tuşu ile) - parry sırasında air attack yapamaz
+        if clicks[2] and self.can_air_attack and not self.is_air_attacking and not self.is_attacking and not self.is_parrying:
             self.is_air_attacking = True
             self.can_air_attack = False  # Bir kez kullanılabilir
             self.last_attack_time = current_time
@@ -273,8 +277,8 @@ class Character(object):
                 self.frame_index = 0  # Animasyonu baştan başlat
                 self.parry_successful = False  # Başlangıçta başarısız
 
-        # Normal saldırı (sol tık ile)
-        if clicks[0]: # left mouse click
+        # Normal saldırı (sol tık ile) - parry sırasında saldırı yapamaz
+        if clicks[0] and not self.is_parrying: # left mouse click
             current_time = pygame.time.get_ticks()
 
             # Eğer saldırı yapılmıyorsa ve cooldown geçtiyse
