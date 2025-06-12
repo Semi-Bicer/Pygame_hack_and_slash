@@ -17,7 +17,8 @@ class SoundManager:
             "shout": os.path.join("assets", "Sounds", "SFX", "shout.mp3"),
             "button_select": os.path.join("assets", "Sounds", "SFX", "button_select.mp3"),
             "button_highlight": os.path.join("assets", "Sounds", "SFX", "button_highlight.mp3"),
-            "parry": os.path.join("assets", "Sounds", "SFX", "defend.mp3")
+            "parry": os.path.join("assets", "Sounds", "SFX", "defend.mp3"),
+            "skip": os.path.join("assets", "Sounds", "SFX", "button_select.mp3")
         }
 
         self.music_volume = 0.5
@@ -84,3 +85,7 @@ class SoundManager:
 
     def is_music_playing(self):
         return pygame.mixer.music.get_busy()
+
+    def set_music_position(self, position_seconds):
+        """Müziği belirli bir saniyeye atlar"""
+        pygame.mixer.music.set_pos(position_seconds)

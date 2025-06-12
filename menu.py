@@ -3,6 +3,67 @@ import os
 import random
 import constants
 
+class Button:
+    def __init__(self, text, font, position=None, center_position=None, text_color=(200, 200, 200), hover_color=(255, 255, 255), selected_color=(255, 255, 255)):
+        self.text = text
+        self.font = font
+        self.position = position  # Sol üst köşe koordinatı
+        self.center_position = center_position  # Merkez koordinatı
+        self.text_color = text_color
+        self.hover_color = hover_color
+        self.selected_color = selected_color
+        self.is_hovered = False
+        self.is_selected = False
+        self.last_hover = False
+
+        # Buton metnini render et ve rect'ini al
+        self.render_text()
+
+    def render_text(self):
+        # Metin rengi seçimi
+        if self.is_selected:
+            color = self.selected_color
+        elif self.is_hovered:
+            color = self.hover_color
+        else:
+            color = self.text_color
+
+        # Sallanma efekti için rastgele offset
+        self.offset_x = random.randint(-1, 1)
+        self.offset_y = random.randint(-1, 1)
+
+        # Metni render et
+        self.rendered_text = self.font.render(self.text, True, color)
+
+        # Rect'i oluştur
+        if self.center_position:
+            self.rect = self.rendered_text.get_rect(center=(self.center_position[0] + self.offset_x,
+                                                           self.center_position[1] + self.offset_y))
+        elif self.position:
+            self.rect = self.rendered_text.get_rect(topleft=(self.position[0] + self.offset_x,
+                                                           self.position[1] + self.offset_y))
+
+    def update(self, mouse_pos, sfx_manager=None):
+        # Mouse butonun üzerinde mi kontrol et
+        hover = self.rect.collidepoint(mouse_pos)
+
+        # Hover durumu değişti mi?
+        if hover and not self.last_hover and sfx_manager:
+            sfx_manager.play_sound("button_highlight")
+
+        # Hover durumunu güncelle
+        self.is_hovered = hover
+        self.last_hover = hover
+
+        # Metni yeniden render et (sallanma efekti ve renk güncellemesi için)
+        self.render_text()
+
+        return hover
+
+    def draw(self, surface):
+        # Butonu çiz
+        surface.blit(self.rendered_text, self.rect)
+
 class Menu:
     def __init__(self, screen_width, screen_height):
         self.screen_width = screen_width
@@ -105,39 +166,37 @@ class Menu:
         title_text = self.font_large.render("SHURA REBIRTH", True, self.title_color)
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
-        # Menü öğeleri
-        menu_rects = []
-        y_pos = self.screen_height // 2
+        # Menü butonlarını oluştur (eğer henüz oluşturulmadıysa)
+        if not hasattr(self, 'main_menu_buttons') or len(self.main_menu_buttons) != len(self.main_menu_items):
+            self.main_menu_buttons = []
+            y_pos = self.screen_height // 2
+
+            for item in self.main_menu_items:
+                button = Button(
+                    text=item,
+                    font=self.font_medium,
+                    center_position=(self.screen_width // 2, y_pos),
+                    text_color=self.text_color,
+                    hover_color=self.hover_color,
+                    selected_color=self.selected_color
+                )
+                self.main_menu_buttons.append(button)
+                y_pos += 70
+
+        # Butonları güncelle ve çiz
         mouse_pos = pygame.mouse.get_pos()
+        menu_rects = []
 
-        # Önceki seçili öğeyi takip etmek için
-        last_selected = getattr(self, 'last_selected_main', -1)
+        for i, button in enumerate(self.main_menu_buttons):
+            # Seçili buton durumunu güncelle
+            button.is_selected = (i == self.selected_item)
 
-        for i, item in enumerate(self.main_menu_items):
-            # Fare imleci üzerinde mi kontrol et
-            text = self.font_medium.render(item, True, self.text_color)
-            text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
-            hover = text_rect.collidepoint(mouse_pos)
+            # Butonu güncelle ve çiz
+            button.update(mouse_pos, sfx_manager)
+            button.draw(win)
 
-            if i == self.selected_item:
-                color = self.selected_color                         # Seçili öğe için parlak beyaz
-            elif hover:
-                color = self.hover_color                            # Fare üzerindeyse parlak beyaz
-                if sfx_manager and i != last_selected:
-                    sfx_manager.play_sound("button_highlight")
-                    self.last_selected_main = i
-            else:
-                color = self.text_color
-
-            # Sallantı efekti ekle (rastgele hafif hareket)
-            offset_x = random.randint(-1, 1)
-            offset_y = random.randint(-1, 1)
-
-            text = self.font_medium.render(item, True, color)
-            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
-            win.blit(text, text_rect)
-            menu_rects.append(text_rect)
-            y_pos += 70
+            # Rect'i listeye ekle
+            menu_rects.append(button.rect)
 
         return menu_rects
 
@@ -146,40 +205,37 @@ class Menu:
         title_text = self.font_large.render("PAUSED", True, self.title_color)
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
-        # Menü öğeleri
-        menu_rects = []
-        y_pos = self.screen_height // 2
+        # Menü butonlarını oluştur (eğer henüz oluşturulmadıysa)
+        if not hasattr(self, 'pause_menu_buttons') or len(self.pause_menu_buttons) != len(self.pause_menu_items):
+            self.pause_menu_buttons = []
+            y_pos = self.screen_height // 2
+
+            for item in self.pause_menu_items:
+                button = Button(
+                    text=item,
+                    font=self.font_medium,
+                    center_position=(self.screen_width // 2, y_pos),
+                    text_color=self.text_color,
+                    hover_color=self.hover_color,
+                    selected_color=self.selected_color
+                )
+                self.pause_menu_buttons.append(button)
+                y_pos += 70
+
+        # Butonları güncelle ve çiz
         mouse_pos = pygame.mouse.get_pos()
+        menu_rects = []
 
-        # Önceki seçili öğeyi takip etmek için
-        last_selected = getattr(self, 'last_selected_pause', -1)
+        for i, button in enumerate(self.pause_menu_buttons):
+            # Seçili buton durumunu güncelle
+            button.is_selected = (i == self.selected_item)
 
-        for i, item in enumerate(self.pause_menu_items):
-            # Fare imleci üzerinde mi kontrol et
-            text = self.font_medium.render(item, True, self.text_color)
-            text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
-            hover = text_rect.collidepoint(mouse_pos)
+            # Butonu güncelle ve çiz
+            button.update(mouse_pos, sfx_manager)
+            button.draw(win)
 
-            # Renk ve parlaklık ayarla
-            if i == self.selected_item:
-                color = self.selected_color
-            elif hover:
-                color = self.hover_color
-                if sfx_manager and i != last_selected:
-                    sfx_manager.play_sound("button_highlight")
-                    self.last_selected_pause = i
-            else:
-                color = self.text_color
-
-            # Sallantı efekti ekle (rastgele hafif hareket)
-            offset_x = random.randint(-1, 1)
-            offset_y = random.randint(-1, 1)
-
-            text = self.font_medium.render(item, True, color)
-            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
-            win.blit(text, text_rect)
-            menu_rects.append(text_rect)
-            y_pos += 70
+            # Rect'i listeye ekle
+            menu_rects.append(button.rect)
 
         return menu_rects
 
@@ -188,40 +244,37 @@ class Menu:
         title_text = self.font_large.render("OPTIONS", True, self.title_color)
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
-        # Menü öğeleri
-        menu_rects = []
-        y_pos = self.screen_height // 2
+        # Menü butonlarını oluştur (eğer henüz oluşturulmadıysa)
+        if not hasattr(self, 'options_menu_buttons') or len(self.options_menu_buttons) != len(self.options_menu_items):
+            self.options_menu_buttons = []
+            y_pos = self.screen_height // 2
+
+            for item in self.options_menu_items:
+                button = Button(
+                    text=item,
+                    font=self.font_medium,
+                    center_position=(self.screen_width // 2, y_pos),
+                    text_color=self.text_color,
+                    hover_color=self.hover_color,
+                    selected_color=self.selected_color
+                )
+                self.options_menu_buttons.append(button)
+                y_pos += 70
+
+        # Butonları güncelle ve çiz
         mouse_pos = pygame.mouse.get_pos()
+        menu_rects = []
 
-        # Önceki seçili öğeyi takip etmek için
-        last_selected = getattr(self, 'last_selected_options', -1)
+        for i, button in enumerate(self.options_menu_buttons):
+            # Seçili buton durumunu güncelle
+            button.is_selected = (i == self.selected_item)
 
-        for i, item in enumerate(self.options_menu_items):
-            # Fare imleci üzerinde mi kontrol et
-            text = self.font_medium.render(item, True, self.text_color)
-            text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
-            hover = text_rect.collidepoint(mouse_pos)
+            # Butonu güncelle ve çiz
+            button.update(mouse_pos, sfx_manager)
+            button.draw(win)
 
-            # Renk ve parlaklık ayarla
-            if i == self.selected_item:
-                color = self.selected_color
-            elif hover:
-                color = self.hover_color
-                if sfx_manager and i != last_selected:
-                    sfx_manager.play_sound("button_highlight")
-                    self.last_selected_options = i
-            else:
-                color = self.text_color
-
-            # Sallantı efekti ekle (rastgele hafif hareket)
-            offset_x = random.randint(-1, 1)
-            offset_y = random.randint(-1, 1)
-
-            text = self.font_medium.render(item, True, color)
-            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
-            win.blit(text, text_rect)
-            menu_rects.append(text_rect)
-            y_pos += 70
+            # Rect'i listeye ekle
+            menu_rects.append(button.rect)
 
         return menu_rects
 
@@ -232,7 +285,6 @@ class Menu:
 
         # Kontrol listesi
         y_pos = self.screen_height // 3
-        mouse_pos = pygame.mouse.get_pos()
 
         for i, (control, key) in enumerate(self.controls.items()):
             # Sallantı efekti ekle (rastgele hafif hareket)
@@ -244,79 +296,73 @@ class Menu:
             win.blit(control_text, text_pos)
             y_pos += 60
 
-        # Geri butonu
-        # Sallantı efekti ekle
-        offset_x = random.randint(-1, 1)
-        offset_y = random.randint(-1, 1)
+        # BACK butonu
+        if not hasattr(self, 'controls_back_button'):
+            self.controls_back_button = Button(
+                text="BACK",
+                font=self.font_medium,
+                center_position=(self.screen_width // 2, y_pos + 40),
+                text_color=self.text_color,
+                hover_color=self.hover_color,
+                selected_color=self.selected_color
+            )
 
-        # Fare imleci üzerinde mi kontrol et
-        temp_rect = pygame.Rect(0, 0, 100, 40)
-        temp_rect.center = (self.screen_width // 2, y_pos + 40)
-        hover = temp_rect.collidepoint(mouse_pos)
+        # Butonu güncelle ve çiz
+        mouse_pos = pygame.mouse.get_pos()
+        self.controls_back_button.update(mouse_pos, sfx_manager)
+        self.controls_back_button.draw(win)
 
-        # Önceki seçili öğeyi takip etmek için
-        last_hover = getattr(self, 'last_hover_controls', False)
-
-        # Renk seçimi
-        color = self.hover_color if hover else self.selected_color
-
-        # Eğer yeni hover durumu varsa ses çal
-        if sfx_manager and hover and not last_hover:
-            sfx_manager.play_sound("button_highlight")
-
-        # Hover durumunu güncelle
-        self.last_hover_controls = hover
-
-        back_text = self.font_medium.render("BACK", True, color)
-        back_rect = back_text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + 40 + offset_y))
-        win.blit(back_text, back_rect)
-
-        return [back_rect]
+        return [self.controls_back_button.rect]
 
     def draw_video_menu(self, win, sfx_manager=None):
         # Başlık
         title_text = self.font_large.render("VIDEO", True, self.title_color)
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
-        # Çözünürlük seçenekleri
-        menu_rects = []
-        y_pos = self.screen_height // 3
+        # Menü butonlarını oluştur (eğer henüz oluşturulmadıysa)
+        if not hasattr(self, 'video_menu_buttons') or len(self.video_menu_buttons) != len(self.video_menu_items):
+            self.video_menu_buttons = []
+            y_pos = self.screen_height // 3
+
+            for i, res in enumerate(self.video_menu_items):
+                # Mevcut çözünürlüğü işaretle
+                if i < len(self.resolutions) and i == self.current_resolution_index:
+                    button_text = f"{res} *"
+                else:
+                    button_text = res
+
+                button = Button(
+                    text=button_text,
+                    font=self.font_medium,
+                    center_position=(self.screen_width // 2, y_pos),
+                    text_color=self.text_color,
+                    hover_color=self.hover_color,
+                    selected_color=self.selected_color
+                )
+                self.video_menu_buttons.append(button)
+                y_pos += 60
+
+        # Butonları güncelle ve çiz
         mouse_pos = pygame.mouse.get_pos()
+        menu_rects = []
 
-        # Önceki seçili öğeyi takip etmek için
-        last_selected = getattr(self, 'last_selected_video', -1)
+        for i, button in enumerate(self.video_menu_buttons):
+            # Seçili buton durumunu güncelle
+            button.is_selected = (i == self.selected_item)
 
-        for i, res in enumerate(self.video_menu_items):
-            # Fare imleci üzerinde mi kontrol et
-            temp_text = self.font_medium.render(res, True, self.text_color)
-            text_rect = temp_text.get_rect(center=(self.screen_width // 2, y_pos))
-            hover = text_rect.collidepoint(mouse_pos)
+            # Çözünürlük değiştiyse buton metnini güncelle
+            if i < len(self.resolutions):
+                if i == self.current_resolution_index and not button.text.endswith(" *"):
+                    button.text = f"{self.video_menu_items[i]} *"
+                elif i != self.current_resolution_index and button.text.endswith(" *"):
+                    button.text = self.video_menu_items[i]
 
-            # Renk ve parlaklık ayarla
-            if i == self.selected_item:
-                color = self.selected_color
-            elif hover:
-                color = self.hover_color
-                if sfx_manager and i != last_selected:
-                    sfx_manager.play_sound("button_highlight")
-                    self.last_selected_video = i
-            else:
-                color = self.text_color
+            # Butonu güncelle ve çiz
+            button.update(mouse_pos, sfx_manager)
+            button.draw(win)
 
-            # Sallantı efekti ekle (rastgele hafif hareket)
-            offset_x = random.randint(-1, 1)
-            offset_y = random.randint(-1, 1)
-
-            # Mevcut çözünürlüğü işaretle
-            if i < len(self.resolutions) and i == self.current_resolution_index:
-                text = self.font_medium.render(f"{res} *", True, color)
-            else:
-                text = self.font_medium.render(res, True, color)
-
-            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
-            win.blit(text, text_rect)
-            menu_rects.append(text_rect)
-            y_pos += 60
+            # Rect'i listeye ekle
+            menu_rects.append(button.rect)
 
         return menu_rects
 
@@ -363,43 +409,28 @@ class Menu:
 
         y_pos += 100
 
-        # Geri butonu
-        # Sallantı efekti ekle
-        offset_x = random.randint(-1, 1)
-        offset_y = random.randint(-1, 1)
+        # BACK butonu
+        if not hasattr(self, 'audio_back_button'):
+            self.audio_back_button = Button(
+                text="BACK",
+                font=self.font_medium,
+                center_position=(self.screen_width // 2, y_pos),
+                text_color=self.text_color,
+                hover_color=self.hover_color,
+                selected_color=self.selected_color
+            )
 
-        # Fare imleci üzerinde mi kontrol et
-        temp_rect = pygame.Rect(0, 0, 100, 40)
-        temp_rect.center = (self.screen_width // 2, y_pos)
-        hover = temp_rect.collidepoint(mouse_pos)
-
-        # Önceki hover durumunu kontrol et
-        last_hover = getattr(self, 'last_hover_audio_back', False)
-
-        # Renk seçimi
-        if self.selected_item == 2:
-            color = self.selected_color
-        elif hover:
-            color = self.hover_color
-            # Eğer yeni hover durumu varsa ses çal
-            if sfx_manager and not last_hover:
-                sfx_manager.play_sound("button_highlight")
-        else:
-            color = self.text_color
-
-        # Hover durumunu güncelle
-        self.last_hover_audio_back = hover
-
-        back_text = self.font_medium.render("BACK", True, color)
-        back_rect = back_text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
-        win.blit(back_text, back_rect)
+        # Butonu güncelle ve çiz
+        self.audio_back_button.is_selected = (self.selected_item == 2)
+        self.audio_back_button.update(mouse_pos, sfx_manager)
+        self.audio_back_button.draw(win)
 
         # Ses ayarlarını uygula
         if sfx_manager:
             sfx_manager.set_sfx_volume(self.sfx_volume)
             sfx_manager.set_music_volume(self.music_volume)
 
-        return [self.sfx_bar_rect, self.music_bar_rect, back_rect]
+        return [self.sfx_bar_rect, self.music_bar_rect, self.audio_back_button.rect]
 
     def draw_death_menu(self, win, sfx_manager=None):
         # Arka planı siyah yap
@@ -421,42 +452,36 @@ class Menu:
         title_text = self.font_large.render("GAME OVER", True, (255, 0, 0))  # Kırmızı renk
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
-        # Menü öğeleri
-        menu_rects = []
-        y_pos = self.screen_height - 200  # Butonları daha aşağıya yerleştir
-        mouse_pos = pygame.mouse.get_pos()
-
-        # Ölüm menüsü öğeleri
+        # Ölüm menüsü butonlarını oluştur (eğer henüz oluşturulmadıysa)
         death_menu_items = ["TRY AGAIN", "QUIT"]
 
-        # Önceki seçili öğeyi takip etmek için
-        last_selected = getattr(self, 'last_selected_death', -1)
+        if not hasattr(self, 'death_menu_buttons') or len(self.death_menu_buttons) != len(death_menu_items):
+            self.death_menu_buttons = []
+            y_pos = self.screen_height - 200  # Butonları daha aşağıya yerleştir
 
-        for i, item in enumerate(death_menu_items):
-            # Fare imleci üzerinde mi kontrol et
-            text = self.font_medium.render(item, True, self.text_color)
-            text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
-            hover = text_rect.collidepoint(mouse_pos)
+            for item in death_menu_items:
+                button = Button(
+                    text=item,
+                    font=self.font_medium,
+                    center_position=(self.screen_width // 2, y_pos),
+                    text_color=self.text_color,
+                    hover_color=self.hover_color,
+                    selected_color=self.selected_color
+                )
+                self.death_menu_buttons.append(button)
+                y_pos += 70
 
-            # Renk ve parlaklık ayarla
-            if hover:
-                color = self.hover_color
-                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
-                if sfx_manager and i != last_selected:
-                    sfx_manager.play_sound("button_highlight")
-                    self.last_selected_death = i
-            else:
-                color = self.text_color
+        # Butonları güncelle ve çiz
+        mouse_pos = pygame.mouse.get_pos()
+        menu_rects = []
 
-            # Sallantı efekti ekle (rastgele hafif hareket)
-            offset_x = random.randint(-1, 1)
-            offset_y = random.randint(-1, 1)
+        for i, button in enumerate(self.death_menu_buttons):
+            # Butonu güncelle ve çiz
+            button.update(mouse_pos, sfx_manager)
+            button.draw(win)
 
-            text = self.font_medium.render(item, True, color)
-            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
-            win.blit(text, text_rect)
-            menu_rects.append(text_rect)
-            y_pos += 70
+            # Rect'i listeye ekle
+            menu_rects.append(button.rect)
 
         return menu_rects
 
@@ -480,42 +505,36 @@ class Menu:
         title_text = self.font_large.render("YOU'VE DEFEATED THE ONI", True, (0, 255, 0))  # Yeşil renk
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
 
-        # Menü öğeleri
-        menu_rects = []
-        y_pos = self.screen_height - 200  # Butonları daha aşağıya yerleştir
-        mouse_pos = pygame.mouse.get_pos()
-
-        # Zafer menüsü öğeleri
+        # Zafer menüsü butonlarını oluştur (eğer henüz oluşturulmadıysa)
         win_menu_items = ["TRY AGAIN", "QUIT"]
 
-        # Önceki seçili öğeyi takip etmek için
-        last_selected = getattr(self, 'last_selected_win', -1)
+        if not hasattr(self, 'win_menu_buttons') or len(self.win_menu_buttons) != len(win_menu_items):
+            self.win_menu_buttons = []
+            y_pos = self.screen_height - 200  # Butonları daha aşağıya yerleştir
 
-        for i, item in enumerate(win_menu_items):
-            # Fare imleci üzerinde mi kontrol et
-            text = self.font_medium.render(item, True, self.text_color)
-            text_rect = text.get_rect(center=(self.screen_width // 2, y_pos))
-            hover = text_rect.collidepoint(mouse_pos)
+            for item in win_menu_items:
+                button = Button(
+                    text=item,
+                    font=self.font_medium,
+                    center_position=(self.screen_width // 2, y_pos),
+                    text_color=self.text_color,
+                    hover_color=self.hover_color,
+                    selected_color=self.selected_color
+                )
+                self.win_menu_buttons.append(button)
+                y_pos += 70
 
-            # Renk ve parlaklık ayarla
-            if hover:
-                color = self.hover_color
-                # Eğer yeni bir öğe üzerinde hover yapılıyorsa ses çal
-                if sfx_manager and i != last_selected:
-                    sfx_manager.play_sound("button_highlight")
-                    self.last_selected_win = i
-            else:
-                color = self.text_color
+        # Butonları güncelle ve çiz
+        mouse_pos = pygame.mouse.get_pos()
+        menu_rects = []
 
-            # Sallantı efekti ekle (rastgele hafif hareket)
-            offset_x = random.randint(-1, 1)
-            offset_y = random.randint(-1, 1)
+        for i, button in enumerate(self.win_menu_buttons):
+            # Butonu güncelle ve çiz
+            button.update(mouse_pos, sfx_manager)
+            button.draw(win)
 
-            text = self.font_medium.render(item, True, color)
-            text_rect = text.get_rect(center=(self.screen_width // 2 + offset_x, y_pos + offset_y))
-            win.blit(text, text_rect)
-            menu_rects.append(text_rect)
-            y_pos += 70
+            # Rect'i listeye ekle
+            menu_rects.append(button.rect)
 
         return menu_rects
 

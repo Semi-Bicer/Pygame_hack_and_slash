@@ -19,30 +19,93 @@ BLUE  = (0, 0, 255)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
+# Çözünürlük bazlı konum sabitleri
+# Her çözünürlük için karakter ve boss konumları
+POSITIONS = {
+    # 800x600 için konumlar
+    (800, 600): {
+        "CHAR_X": 200,
+        "CHAR_Y": 400,
+        "BOSS_X": 450,
+        "BOSS_Y": 340
+    },
+    # 1000x800 için konumlar
+    (1000, 800): {
+        "CHAR_X": 300,
+        "CHAR_Y": 500,
+        "BOSS_X": 700,
+        "BOSS_Y": 550
+    },
+    # 1280x720 için konumlar
+    (1280, 720): {
+        "CHAR_X": 400,
+        "CHAR_Y": 450,
+        "BOSS_X": 880,
+        "BOSS_Y": 500
+    },
+    # Tam ekran için konumlar (varsayılan 1920x1080 olarak kabul edildi)
+    "fullscreen": {
+        "CHAR_X": 600,
+        "CHAR_Y": 700,
+        "BOSS_X": 1320,
+        "BOSS_Y": 750
+    }
+}
+
+# Mevcut çözünürlük için konumları al
+def get_positions(width, height, is_fullscreen=False):
+    if is_fullscreen:
+        return POSITIONS["fullscreen"]
+
+    # Mevcut çözünürlük için tanımlı konum var mı?
+    if (width, height) in POSITIONS:
+        return POSITIONS[(width, height)]
+
+    # Yoksa en yakın çözünürlüğü bul
+    closest = (1000, 800)  # Varsayılan
+    for res in POSITIONS:
+        if res != "fullscreen":
+            if abs(res[0] - width) + abs(res[1] - height) < abs(closest[0] - width) + abs(closest[1] - height):
+                closest = res
+
+    return POSITIONS[closest]
+
+# Karakter ve boss konumlarını fonksiyon olarak tanımla
+def get_char_x():
+    return get_positions(screenWidth, screenHeight)["CHAR_X"]
+
+def get_char_y():
+    return get_positions(screenWidth, screenHeight)["CHAR_Y"]
+
+def get_boss_x():
+    return get_positions(screenWidth, screenHeight)["BOSS_X"]
+
+def get_boss_y():
+    return get_positions(screenWidth, screenHeight)["BOSS_Y"]
+
 # Karakter sabitleri
-CHAR_X                = 100  # Solda başlasın
-CHAR_Y                = screenHeight // 2 + 100  # Ayakları zemine hizalı
+CHAR_X                = get_char_x()
+CHAR_Y                = get_char_y()
 CHAR_HEALTH           = 100
 CHAR_MAX_HEALTH       = 100
 CHAR_SPEED            = 6
 CHAR_DASH_SPEED       = 8.0
 CHAR_DASH_MULTIPLIER  = 1
 CHAR_DASH_DELAY       = 480
-CHAR_DASH_COOLDOWN   = 1500  # ms cinsinden dash bekleme süresi
+CHAR_DASH_COOLDOWN    = 1500  # ms cinsinden dash bekleme süresi
 CHAR_ANIM_COOLDOWN_MS = 60
-CHAR_ATTACK_COOLDOWN = 500  # ms cinsinden saldırı bekleme süresi
+CHAR_ATTACK_COOLDOWN  = 500  # ms cinsinden saldırı bekleme süresi
 CHAR_ATTACK_FRAME_DURATION = 50  # ms cinsinden saldırı süresi
-CHAR_ATTACK_DAMAGE = 20
-CHAR_ATTACK_FRAME = 3
-CHAR_HEALING_AMOUNT = 20  # İyileştirme miktarı
+CHAR_ATTACK_DAMAGE    = 20
+CHAR_ATTACK_FRAME     = 3
+CHAR_HEALING_AMOUNT   = 20  # İyileştirme miktarı
 CHAR_HEALING_COOLDOWN = 3000  # İyileştirme bekleme süresi (ms)
 
 # Boss sabitleri
 BOSS_FRAME_WIDTH      = 128
 BOSS_FRAME_HEIGHT     = 108
-BOSS_NUM_FRAMES       = 6
-BOSS_START_X          = screenWidth - 100  # Sağda başlasın
-BOSS_START_Y          = screenHeight // 2 + 100  # Ayakları zemine hizalı
+BOSS_START_X          = get_boss_x()
+BOSS_START_Y          = get_boss_y()
 BOSS_SPEED            = 2.0
 BOSS_FOLLOW_DISTANCE  = 800
 BOSS_HEALTH           = 300
