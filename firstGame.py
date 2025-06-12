@@ -6,7 +6,7 @@ from character import Character
 from boss import Boss
 from functions import *
 from Background import SamuraiBackground
-from menu import Menu
+from menu import Menu, Button
 from sfx import SoundManager
 
 pygame.init()
@@ -24,12 +24,42 @@ bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
 
 bullets = []
 
+# Başlangıç konumlarını çözünürlüğe göre ayarla
+char_x = 300
+char_y = 500
+boss_x = 700
+boss_y = 550
+
+# 800x600 için
+if constants.screenWidth == 800 and constants.screenHeight == 600:
+    char_x = 200
+    char_y = 400
+    boss_x = 600
+    boss_y = 450
+# 1280x720 için
+elif constants.screenWidth == 1280 and constants.screenHeight == 720:
+    char_x = 400
+    char_y = 450
+    boss_x = 880
+    boss_y = 500
+# Tam ekran veya diğer çözünürlükler için
+elif constants.screenWidth > 1280 or constants.screenHeight > 800:
+    char_x = 600
+    char_y = 700
+    boss_x = 1320
+    boss_y = 750
+
+print(f"Başlangıç çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
+print(f"Başlangıç konumları: Karakter({char_x}, {char_y}), Boss({boss_x}, {boss_y})")
+
 # Oyuncu
 player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)
 player.set_sfx_manager(sfx_manager)
 
 # Boss
 boss = Boss(constants.BOSS_START_X, constants.BOSS_START_Y, player, sfx_manager)
+# Boss'un başlangıçta sola bakmasını sağla
+boss.flip = True
 
 # Pixel font yükleme
 try:
@@ -85,7 +115,10 @@ start_button = None
 # Intro değişkenleri
 intro_active = False
 intro_start_time = 0
-intro_duration = 15000  # 14 saniye (ms cinsinden)
+intro_duration = 15000  # 15 saniye (ms cinsinden)
+
+# Skip butonu için değişkenler
+skip_button_rect = pygame.Rect(0, 0, 100, 40)  # Başlangıçta boş, daha sonra konumlandırılacak
 
 def redrawGameWindow():
     bg.update()
@@ -205,6 +238,7 @@ while run:
                 break
             elif isinstance(result, tuple) and result[0] == "resolution":
                 # Çözünürlük değiştirme
+                is_fullscreen = False
                 if result[1] == "fullscreen":
                     # Tam ekran modu
                     win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -212,12 +246,42 @@ while run:
                     display_info = pygame.display.Info()
                     constants.screenWidth = display_info.current_w
                     constants.screenHeight = display_info.current_h
+                    is_fullscreen = True
                 else:
                     # Normal pencere modu
                     new_width, new_height = result[1]
                     win = pygame.display.set_mode((new_width, new_height))
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
+
+                # Çözünürlük değişiminde konumları sabit değerlerle ayarla
+                if result[1] == "fullscreen":
+                    # Tam ekran için konumlar
+                    player.x = 600
+                    player.y = 700
+                    boss.x = 1320
+                    boss.y = 750
+                elif result[1] == (800, 600):
+                    # 800x600 için konumlar
+                    player.x = 200
+                    player.y = 400
+                    boss.x = 600
+                    boss.y = 450
+                elif result[1] == (1000, 800):
+                    # 1000x800 için konumlar
+                    player.x = 300
+                    player.y = 500
+                    boss.x = 700
+                    boss.y = 550
+                elif result[1] == (1280, 720):
+                    # 1280x720 için konumlar
+                    player.x = 400
+                    player.y = 450
+                    boss.x = 880
+                    boss.y = 500
+
+                print(f"Yeni çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
+                print(f"Boss konumu: x={boss.x}, y={boss.y}")
 
                 # Arkaplanı yeniden oluştur
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
@@ -239,13 +303,38 @@ while run:
                 boss.invincible = False
                 boss.attack_cooldown = 2000
                 boss.dash_speed = constants.BOSS_SPEED * 5
-                player.x = constants.CHAR_X
-                player.y = constants.CHAR_Y
-                boss.x = constants.BOSS_START_X
-                boss.y = constants.BOSS_START_Y
+                # Mevcut çözünürlüğe göre konumları ayarla
+                if constants.screenWidth == 800 and constants.screenHeight == 600:
+                    # 800x600 için konumlar
+                    player.x = 200
+                    player.y = 400
+                    boss.x = 600
+                    boss.y = 450
+                elif constants.screenWidth == 1000 and constants.screenHeight == 800:
+                    # 1000x800 için konumlar
+                    player.x = 300
+                    player.y = 500
+                    boss.x = 700
+                    boss.y = 550
+                elif constants.screenWidth == 1280 and constants.screenHeight == 720:
+                    # 1280x720 için konumlar
+                    player.x = 400
+                    player.y = 450
+                    boss.x = 880
+                    boss.y = 500
+                else:
+                    # Tam ekran veya diğer çözünürlükler için
+                    player.x = 600
+                    player.y = 700
+                    boss.x = 1320
+                    boss.y = 750
+
+                print(f"Oyun yeniden başlatıldı. Çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
+                print(f"Boss konumu: x={boss.x}, y={boss.y}")
                 game_paused = False
             elif isinstance(result, tuple) and result[0] == "resolution":
                 # Çözünürlük değiştirme - pause menüsünden
+                is_fullscreen = False
                 if result[1] == "fullscreen":
                     # Tam ekran modu
                     win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -253,6 +342,7 @@ while run:
                     display_info = pygame.display.Info()
                     constants.screenWidth = display_info.current_w
                     constants.screenHeight = display_info.current_h
+                    is_fullscreen = True
                 else:
                     # Normal pencere modu
                     new_width, new_height = result[1]
@@ -260,6 +350,34 @@ while run:
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
 
+                # Çözünürlük değişiminde konumları sabit değerlerle ayarla
+                if result[1] == "fullscreen":
+                    # Tam ekran için konumlar
+                    player.x = 600
+                    player.y = 700
+                    boss.x = 1320
+                    boss.y = 750
+                elif result[1] == (800, 600):
+                    # 800x600 için konumlar
+                    player.x = 200
+                    player.y = 400
+                    boss.x = 600
+                    boss.y = 450
+                elif result[1] == (1000, 800):
+                    # 1000x800 için konumlar
+                    player.x = 300
+                    player.y = 500
+                    boss.x = 700
+                    boss.y = 550
+                elif result[1] == (1280, 720):
+                    # 1280x720 için konumlar
+                    player.x = 400
+                    player.y = 450
+                    boss.x = 880
+                    boss.y = 500
+
+                print(f"Pause menüsünden yeni çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
+                print(f"Boss konumu: x={boss.x}, y={boss.y}")
 
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
                 menu = Menu(constants.screenWidth, constants.screenHeight)
@@ -280,7 +398,26 @@ while run:
                 menu.selected_item = 0
         elif event.type == pygame.MOUSEBUTTONDOWN and game_active and not game_paused:
             if event.button == 1:  # Sol tık ve oyun aktifse
-                sfx_manager.play_sound("attack1")                                                 # 💥 burdan yukarısı
+                # Intro sırasında skip butonuna tıklandı mı kontrol et
+                if intro_active and hasattr(redrawGameWindow, "skip_button") and redrawGameWindow.skip_button.rect.collidepoint(event.pos):
+                    # Skip ses efekti
+                    sfx_manager.play_sound("skip")
+
+                    # Intro'yu atla
+                    intro_active = False
+                    bg.set_intro_active(False)
+
+                    # Müziği 14. saniyeye atla
+                    try:
+                        # Müziği durdur ve yeniden başlat (14. saniyeden)
+                        current_music = sfx_manager.current_music
+                        sfx_manager.stop_music()
+                        sfx_manager.play_music(current_music)
+                        sfx_manager.set_music_position(14.8)
+                    except Exception as e:
+                        print(f"Müzik atlama hatası: {e}")
+                else:
+                    sfx_manager.play_sound("attack1")
 
     # Karakter öldüğünde death menüsünü göster
     if player.health <= 0:
@@ -295,7 +432,7 @@ while run:
         menu.selected_item = 0
 
     if not game_active or game_paused:
-        menu_rects = menu.draw(win, constants, sfx_manager)                                                         #💥
+        menu_rects = menu.draw(win, constants, sfx_manager)
         pygame.display.update()
         continue
 
@@ -322,6 +459,58 @@ while run:
             if remaining_time > 0:
                 time_text = font.render(f"Battle begins in {remaining_time}...", True, constants.WHITE)
                 win.blit(time_text, (constants.screenWidth // 2 - time_text.get_width() // 2, constants.screenHeight // 2))
+
+            # SKIP butonu
+            skip_font = pygame.font.Font(constants.FONT_PATH, 24)
+
+            # Buton konumu - sağ alt köşe
+            skip_button_x = constants.screenWidth - 100 - 20  # Yaklaşık buton genişliği ve kenar boşluğu
+            skip_button_y = constants.screenHeight - 40 - 20  # Yaklaşık buton yüksekliği ve kenar boşluğu
+
+            # Skip butonunu oluştur (eğer henüz oluşturulmadıysa)
+            if not hasattr(redrawGameWindow, "skip_button"):
+                redrawGameWindow.skip_button = Button(
+                    text="SKIP",
+                    font=skip_font,
+                    position=(skip_button_x, skip_button_y),
+                    text_color=constants.WHITE,
+                    hover_color=constants.WHITE,
+                    selected_color=constants.WHITE
+                )
+
+            # Buton arka planı
+            pygame.draw.rect(win, (50, 50, 50), redrawGameWindow.skip_button.rect)
+            pygame.draw.rect(win, constants.WHITE, redrawGameWindow.skip_button.rect, 2)  # Beyaz çerçeve
+
+            # Mouse tıklamasını kontrol et
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_clicked = pygame.mouse.get_pressed()[0]  # Sol tık
+
+            # Butonu güncelle ve çiz
+            hover = redrawGameWindow.skip_button.update(mouse_pos, sfx_manager)
+            redrawGameWindow.skip_button.draw(win)
+
+            # Buton dikdörtgenini güncelle (event handling için)
+            skip_button_rect = redrawGameWindow.skip_button.rect
+
+            # Tıklama kontrolü
+            if hover and mouse_clicked:
+                # Skip ses efekti
+                sfx_manager.play_sound("skip")
+
+                # Intro'yu atla
+                intro_active = False
+                bg.set_intro_active(False)
+
+                # Müziği 14. saniyeye atla
+                try:
+                    # Müziği durdur ve yeniden başlat (14. saniyeden)
+                    current_music = sfx_manager.current_music
+                    sfx_manager.stop_music()
+                    sfx_manager.play_music(current_music)
+                    sfx_manager.set_music_position(14.8)
+                except Exception as e:
+                    print(f"Müzik atlama hatası: {e}")
 
             pygame.display.update()
             continue

@@ -493,7 +493,5 @@ class Character(object):
                 bar_height = 5
                 fill_ratio = cooldown_remaining / self.dash_cooldown
                 fill_width = bar_width * (1 - fill_ratio)  # Tersine çevrilmiş - cooldown azaldıkça bar dolar
-                pygame.draw.rect(win, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))  # Gri arka plan
-                pygame.draw.rect(win, (0, 150, 255), (bar_x, bar_y, fill_width, bar_height))  # Mavi doluluk
-
-
+                #pygame.draw.rect(win, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))  # Gri arka plan
+                #pygame.draw.rect(win, (0, 150, 255), (bar_x, bar_y, fill_width, bar_height))  # Mavi doluluk
