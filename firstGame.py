@@ -46,7 +46,7 @@ elif constants.screenWidth == 1280 and constants.screenHeight == 720:
 elif constants.screenWidth > 1280 or constants.screenHeight > 800:
     char_x = 600
     char_y = 700
-    boss_x = 1320
+    boss_x = 1100
     boss_y = 750
 
 print(f"Başlangıç çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
@@ -259,7 +259,7 @@ while run:
                     # Tam ekran için konumlar
                     player.x = 600
                     player.y = 700
-                    boss.x = 1320
+                    boss.x = 1100
                     boss.y = 750
                 elif result[1] == (800, 600):
                     # 800x600 için konumlar
@@ -308,25 +308,25 @@ while run:
                     # 800x600 için konumlar
                     player.x = 200
                     player.y = 400
-                    boss.x = 600
-                    boss.y = 450
+                    boss.x = 400
+                    boss.y = 350
                 elif constants.screenWidth == 1000 and constants.screenHeight == 800:
                     # 1000x800 için konumlar
                     player.x = 300
                     player.y = 500
-                    boss.x = 700
-                    boss.y = 550
+                    boss.x = 400
+                    boss.y = 450
                 elif constants.screenWidth == 1280 and constants.screenHeight == 720:
                     # 1280x720 için konumlar
                     player.x = 400
                     player.y = 450
-                    boss.x = 880
-                    boss.y = 500
+                    boss.x = 400
+                    boss.y = 400
                 else:
                     # Tam ekran veya diğer çözünürlükler için
                     player.x = 600
                     player.y = 700
-                    boss.x = 1320
+                    boss.x = 1100
                     boss.y = 750
 
                 print(f"Oyun yeniden başlatıldı. Çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
@@ -355,26 +355,26 @@ while run:
                     # Tam ekran için konumlar
                     player.x = 600
                     player.y = 700
-                    boss.x = 1320
+                    boss.x = 1100
                     boss.y = 750
                 elif result[1] == (800, 600):
                     # 800x600 için konumlar
                     player.x = 200
                     player.y = 400
-                    boss.x = 600
-                    boss.y = 450
+                    boss.x = 400
+                    boss.y = 350
                 elif result[1] == (1000, 800):
                     # 1000x800 için konumlar
                     player.x = 300
                     player.y = 500
-                    boss.x = 700
-                    boss.y = 550
+                    boss.x = 400
+                    boss.y = 450
                 elif result[1] == (1280, 720):
                     # 1280x720 için konumlar
                     player.x = 400
                     player.y = 450
-                    boss.x = 880
-                    boss.y = 500
+                    boss.x = 400
+                    boss.y = 400
 
                 print(f"Pause menüsünden yeni çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
                 print(f"Boss konumu: x={boss.x}, y={boss.y}")

@@ -3,8 +3,8 @@ import os
 
 # Genel ayarlar
 FPS = 60
-screenWidth = 1000
-screenHeight = 800
+screenWidth = 1920
+screenHeight = 1080
 scale = 2
 
 # Font ve ses yolları
@@ -25,7 +25,7 @@ POSITIONS = {
     # 800x600 için konumlar
     (800, 600): {
         "CHAR_X": 200,
-        "CHAR_Y": 400,
+        "CHAR_Y": 100,
         "BOSS_X": 450,
         "BOSS_Y": 340
     },
@@ -45,15 +45,15 @@ POSITIONS = {
     },
     # Tam ekran için konumlar (varsayılan 1920x1080 olarak kabul edildi)
     "fullscreen": {
-        "CHAR_X": 600,
+        "CHAR_X": 700,
         "CHAR_Y": 700,
-        "BOSS_X": 1320,
+        "BOSS_X": 1100,
         "BOSS_Y": 750
     }
 }
 
 # Mevcut çözünürlük için konumları al
-def get_positions(width, height, is_fullscreen=False):
+def get_positions(width, height, is_fullscreen=True):
     if is_fullscreen:
         return POSITIONS["fullscreen"]
 
@@ -62,7 +62,7 @@ def get_positions(width, height, is_fullscreen=False):
         return POSITIONS[(width, height)]
 
     # Yoksa en yakın çözünürlüğü bul
-    closest = (1000, 800)  # Varsayılan
+    closest = (1919, 1079)  # Varsayılan
     for res in POSITIONS:
         if res != "fullscreen":
             if abs(res[0] - width) + abs(res[1] - height) < abs(closest[0] - width) + abs(closest[1] - height):

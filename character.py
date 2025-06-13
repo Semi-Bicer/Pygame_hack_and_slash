@@ -215,8 +215,10 @@ class Character(object):
 
         if keys[pygame.K_LSHIFT]:
             self.running = True
+            self.vel = constants.CHAR_SPEED * 3
         else:
             self.running = False
+            self.vel = constants.CHAR_SPEED
 
         # E tuşu ile healing
         if keys[pygame.K_e]:
