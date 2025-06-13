@@ -65,6 +65,7 @@ class Button:
         surface.blit(self.rendered_text, self.rect)
 
 class Menu:
+    current_resolution_index = 3  # Varsayılan 1920x1080
     def __init__(self, screen_width, screen_height):
         self.screen_width = screen_width
         self.screen_height = screen_height
@@ -109,7 +110,7 @@ class Menu:
 
         # Video ayarları
         self.resolutions = [(800, 600), (1000, 800), (1280, 720), "fullscreen"]
-        self.current_resolution_index = 1  # Varsayılan 1000x800
+        
 
         # Kontroller
         self.controls = {
@@ -710,7 +711,8 @@ class Menu:
 
         elif self.current_menu == "video":
             if self.selected_item < len(self.resolutions):
-                self.current_resolution_index = self.selected_item
+                Menu.current_resolution_index = self.selected_item
+                print(f"Selected resolution index: {self.current_resolution_index}")
                 if win_size:
                     return ("resolution", self.resolutions[self.selected_item])
             elif self.selected_item == len(self.video_menu_items) - 1:
