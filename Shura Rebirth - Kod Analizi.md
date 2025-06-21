@@ -23,6 +23,8 @@ Karakterin 3 iyleştirme hakkı var. Ayrıca iyleştirme sırasında artık herh
 
 >[!info]  if not player.is_healing: player.move(keys, clicks)
 
+Başarılı boss saldırılarında impact frame eklemesi yapıldı. Bunu gerçekleştiren metodun ayrıntıları functions.py 'da bulabilirsiniz.
+
 ## 3. gün
 ## 4. gün
 ## 5. gün
