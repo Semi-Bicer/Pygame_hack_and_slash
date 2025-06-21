@@ -58,6 +58,7 @@ class Character(object):
         # Can ve sağlık
         self.health = constants.CHAR_HEALTH
         self.maxHealth = constants.CHAR_MAX_HEALTH
+        self.healingLimit = constants.CHAR_HEALING_LIMIT
         # Saldırı
         self.is_attacking = False
         self.last_attack_time = 0
@@ -155,10 +156,11 @@ class Character(object):
     def start_healing(self):
         current_time = pygame.time.get_ticks()
         # Eğer healing cooldown süresi geçtiyse, healing animasyonu aktif değilse ve can maksimumdan düşükse
-        if not self.is_healing and current_time - self.last_healing_time > self.healing_cooldown and self.health < self.maxHealth:
+        if not self.is_healing and current_time - self.last_healing_time > self.healing_cooldown and self.health < self.maxHealth and self.healingLimit > 0:
             self.is_healing = True
             self.last_healing_time = current_time
             self.frame_index = 0
+            self.healingLimit -= 1
             print("Healing started!")
 
     def throw_shuriken(self, bullets, Projectile):

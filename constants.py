@@ -100,6 +100,7 @@ CHAR_ATTACK_DAMAGE    = 20
 CHAR_ATTACK_FRAME     = 3
 CHAR_HEALING_AMOUNT   = 20  # İyileştirme miktarı
 CHAR_HEALING_COOLDOWN = 3000  # İyileştirme bekleme süresi (ms)
+CHAR_HEALING_LIMIT    = 3  # Maksimum iyileştirme sayısı
 
 # Boss sabitleri
 BOSS_FRAME_WIDTH      = 128

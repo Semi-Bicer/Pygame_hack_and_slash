@@ -188,6 +188,8 @@ def redrawGameWindow():
                         player.parry_hit()
                     else:
                         player.play_hurt_animation()
+                        for _ in range(3):
+                            impact_frame(win, alpha=100)
 
     # player ve boss'u harita sınırlarında ve zeminde tut
     if player.rect.bottom < constants.screenHeight // 2:
@@ -517,7 +519,8 @@ while run:
 
     keys = pygame.key.get_pressed()
     clicks = pygame.mouse.get_pressed()
-    player.move(keys, clicks)
+    if not player.is_healing:
+        player.move(keys, clicks)
 
     # Intro sırasında boss hareket etmez
     if not intro_active:

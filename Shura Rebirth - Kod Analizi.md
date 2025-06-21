@@ -17,6 +17,12 @@ Bugün s-m-i çalıştı. toplantıda hikaye belirlendi, github eğitimi yapıld
 - [ ] Asgore'dan ilham alınarak seçilen boss saldırısı (renkli gözler)
 
 ## 2. gün
+Karakterin iyleştirme mekaniklerini iyleştirme ve eklemeler yapıldı.
+
+Karakterin 3 iyleştirme hakkı var. Ayrıca iyleştirme sırasında artık herhangi bir aksiyon alamaz hale geldi.
+
+>[!info]  if not player.is_healing: player.move(keys, clicks)
+
 ## 3. gün
 ## 4. gün
 ## 5. gün

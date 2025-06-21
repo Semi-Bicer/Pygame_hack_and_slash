@@ -57,4 +57,8 @@ def load_single_image(image_path, scale=1.0):
         print(f"Error loading image from {image_path}: {e}")
     return frames
 
-#
+def impact_frame(surface, alpha= 255, color=constants.WHITE):
+    flash = pygame.Surface(surface.get_size())
+    flash.fill(color)
+    flash.set_alpha(alpha)
+    surface.blit(flash, (0, 0))
