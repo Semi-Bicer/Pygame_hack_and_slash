@@ -3,29 +3,30 @@ import os
 import math
 import constants
 from functions import *
+from menu import Menu
 
 class Character(object):
     @staticmethod
     def load_animations():
         assets_path = os.path.join("assets", "Player", "Sprites")
         # Animasyonları yükle
-        charIdle = load_and_scale_sheet(os.path.join(assets_path, "IDLE.png"), 96, 84, 10)
-        walkRight = load_and_scale_sheet(os.path.join(assets_path, "WALK.png"), 96, 84, 12)
-        runRight = load_and_scale_sheet(os.path.join(assets_path, "RUN.png"), 96, 84, 16)
-        dash = load_and_scale_sheet(os.path.join(assets_path, "DASH.png"), 95, 84, 8)
-        attack1 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 1.png"), 96, 84, 6)
-        attack2 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 2.png"), 96, 84, 6)
-        attack3 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 3.png"), 96, 84, 6)
-        hurt = load_and_scale_sheet(os.path.join(assets_path, "HURT.png"), 96, 84, 4)
-        healing = load_and_scale_sheet(os.path.join(assets_path, "HEALING.png"), 96, 84, 15)
-        defend = load_and_scale_sheet(os.path.join(assets_path, "DEFEND.png"), 96, 84, 6)
+        charIdle = load_and_scale_sheet(os.path.join(assets_path, "IDLE.png"), 96, 84, 10,3)
+        walkRight = load_and_scale_sheet(os.path.join(assets_path, "WALK.png"), 96, 84, 12,3)
+        runRight = load_and_scale_sheet(os.path.join(assets_path, "RUN.png"), 96, 84, 16,3)
+        dash = load_and_scale_sheet(os.path.join(assets_path, "DASH.png"), 96, 84, 8,3)
+        attack1 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 1.png"), 96, 84, 6,3)
+        attack2 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 2.png"), 96, 84, 6,3)
+        attack3 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 3.png"), 96, 84, 6,3)
+        hurt = load_and_scale_sheet(os.path.join(assets_path, "HURT.png"), 96, 84, 4,3)
+        healing = load_and_scale_sheet(os.path.join(assets_path, "HEALING.png"), 96, 84, 15,3)
+        defend = load_and_scale_sheet(os.path.join(assets_path, "DEFEND.png"), 96, 84, 6,3)
         combo_attack = []
         combo_attack.extend(attack1)
         combo_attack.extend(attack2)
         combo_attack.extend(attack3)
-        air_attack = load_and_scale_sheet(os.path.join(assets_path, "AIR ATTACK.png"), 96, 84, 6)
+        air_attack = load_and_scale_sheet(os.path.join(assets_path, "AIR ATTACK.png"), 96, 84, 6,3)
 
-        throw = load_and_scale_sheet(os.path.join(assets_path, "THROW.png"), 96, 84, 7)
+        throw = load_and_scale_sheet(os.path.join(assets_path, "THROW.png"), 96, 84, 7,3)
         # 0: idle, 1: walk, 2: run, 3: dash, 4: combo_attack, 5: throw, 6: air_attack, 7: hurt, 8: healing, 9: defend
         animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack, hurt, healing, defend]
         return animation_list
@@ -38,6 +39,8 @@ class Character(object):
 
 
     def __init__(self, x, y, width, height, screenWidth, screenHeight, char_type=0):
+        self.key = 3
+        self.old_key = 3
         # Pozisyon ve boyutlar
         self.x = x
         self.y = y
@@ -128,6 +131,29 @@ class Character(object):
         # Shuriken referansını sakla
         self.shuriken = self.load_shuriken()[0]
 
+    def reload(self):
+        assets_path = os.path.join("assets", "Player", "Sprites")
+        # Animasyonları yükle
+        charIdle = load_and_scale_sheet(os.path.join(assets_path, "IDLE.png"), 96, 84, 10, self.key)
+        walkRight = load_and_scale_sheet(os.path.join(assets_path, "WALK.png"), 96, 84, 12, self.key)
+        runRight = load_and_scale_sheet(os.path.join(assets_path, "RUN.png"), 96, 84, 16, self.key)
+        dash = load_and_scale_sheet(os.path.join(assets_path, "DASH.png"), 96, 84, 8, self.key)
+        attack1 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 1.png"), 96, 84, 6, self.key)
+        attack2 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 2.png"), 96, 84, 6, self.key)
+        attack3 = load_and_scale_sheet(os.path.join(assets_path, "ATTACK 3.png"), 96, 84, 6, self.key)
+        hurt = load_and_scale_sheet(os.path.join(assets_path, "HURT.png"), 96, 84, 4, self.key)
+        healing = load_and_scale_sheet(os.path.join(assets_path, "HEALING.png"), 96, 84, 15, self.key)
+        defend = load_and_scale_sheet(os.path.join(assets_path, "DEFEND.png"), 96, 84, 6, self.key)
+        combo_attack = []
+        combo_attack.extend(attack1)
+        combo_attack.extend(attack2)
+        combo_attack.extend(attack3)
+        air_attack = load_and_scale_sheet(os.path.join(assets_path, "AIR ATTACK.png"), 96, 84, 6, self.key)
+
+        throw = load_and_scale_sheet(os.path.join(assets_path, "THROW.png"), 96, 84, 7, self.key)
+        # 0: idle, 1: walk, 2: run, 3: dash, 4: combo_attack, 5: throw, 6: air_attack, 7: hurt, 8: healing, 9: defend
+        animation_list = [charIdle, walkRight, runRight, dash, combo_attack, throw, air_attack, hurt, healing, defend]
+        self.animation_list = animation_list
 
     def set_sfx_manager(self, sfx_manager):
         self.sfx_manager = sfx_manager
@@ -308,6 +334,10 @@ class Character(object):
     def update(self):
         self.rect.center = (self.x + self.width / 2 , self.y + self.height / 2)
         current_time = pygame.time.get_ticks()
+        self.key = Menu.current_resolution_index
+        if self.key != self.old_key:
+            self.reload()
+            self.old_key = self.key
 
 
         # checking action
@@ -477,10 +507,10 @@ class Character(object):
             self.last_update = pygame.time.get_ticks()
 
     def draw(self, win, font=None):  # font parametresi opsiyonel
-        #pygame.draw.rect(win, constants.RED, self.rect, 1)
+        pygame.draw.rect(win, constants.RED, self.rect, 1)
         flipped_image = pygame.transform.flip(self.image, self.flip, False)
         if(self.char_type == 0):
-            win.blit(flipped_image, (self.rect.x - constants.scale *constants.OFFSET_X, self.rect.y - constants.scale *constants.OFFSET_Y))
+            win.blit(flipped_image, (self.rect.x - constants.scale *constants.OFFSET_X*constants.ORAN_W[self.key], self.rect.y - constants.scale *constants.OFFSET_Y*constants.ORAN_H[self.key]))
         else:
             win.blit(flipped_image, self.rect)
         # health bar

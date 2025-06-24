@@ -51,6 +51,8 @@ POSITIONS = {
         "BOSS_Y": 750
     }
 }
+ORAN_W = (80/198, 100/192, 2/3, 1)
+ORAN_H = (60/108, 80/108, 2/3, 1)
 
 # Mevcut çözünürlük için konumları al
 def get_positions(width, height, is_fullscreen=True):

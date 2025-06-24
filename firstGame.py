@@ -12,6 +12,7 @@ from sfx import SoundManager
 pygame.init()
 
 win = pygame.display.set_mode((constants.screenWidth, constants.screenHeight))
+
 pygame.display.set_caption("Boss Fight")
 
 
@@ -208,7 +209,7 @@ def redrawGameWindow():
     if boss.rect.left < 0:
         boss.x = 0
     if boss.rect.right > constants.screenWidth:
-        boss.x = constants.screenWidth - boss.width
+        boss.x = constants.screenWidth - boss.original_width
 
     pygame.display.update()
 
@@ -235,20 +236,23 @@ while run:
                 sfx_manager.set_music_volume(menu.music_volume)
                 sfx_manager.set_sfx_volume(menu.sfx_volume)
                 sfx_manager.play_music("battle", fade_ms=1000)
+
             elif result == "quit":
                 run = False
                 break
             elif isinstance(result, tuple) and result[0] == "resolution":
+
                 # Çözünürlük değiştirme
                 is_fullscreen = False
                 if result[1] == "fullscreen":
                     # Tam ekran modu
-                    win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                    win = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
                     # Ekran boyutlarını al
                     display_info = pygame.display.Info()
                     constants.screenWidth = display_info.current_w
                     constants.screenHeight = display_info.current_h
                     is_fullscreen = True
+
                 else:
                     # Normal pencere modu
                     new_width, new_height = result[1]
@@ -256,34 +260,25 @@ while run:
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
 
+
+                player.x = 0.4*constants.screenWidth
+                player.y = 0.6*constants.screenHeight
+                boss.x = 0.6*constants.screenWidth
+                boss.y = 0.55*constants.screenHeight
+                player.rect.width = 96 * (constants.screenWidth / 1920)
+                player.rect.height = 86 * (constants.screenHeight / 1080)
+                boss.rect.width = 144 * (constants.screenWidth / 1920)
+                boss.rect.height = 124 * (constants.screenHeight / 1080)
+
+
+
                 # Çözünürlük değişiminde konumları sabit değerlerle ayarla
-                if result[1] == "fullscreen":
-                    # Tam ekran için konumlar
-                    player.x = 600
-                    player.y = 700
-                    boss.x = 1100
-                    boss.y = 750
-                elif result[1] == (800, 600):
-                    # 800x600 için konumlar
-                    player.x = 200
-                    player.y = 400
-                    boss.x = 600
-                    boss.y = 450
-                elif result[1] == (1000, 800):
-                    # 1000x800 için konumlar
-                    player.x = 300
-                    player.y = 500
-                    boss.x = 700
-                    boss.y = 550
-                elif result[1] == (1280, 720):
-                    # 1280x720 için konumlar
-                    player.x = 400
-                    player.y = 450
-                    boss.x = 880
-                    boss.y = 500
+
 
                 print(f"Yeni çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
-                print(f"Boss konumu: x={boss.x}, y={boss.y}")
+                print(f"Boss un boyutu: {boss.rect.width}x{boss.rect.height}")
+                print(f"MC nin boyutu: {player.rect.width}x{player.rect.height}")
+
 
                 # Arkaplanı yeniden oluştur
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
@@ -291,8 +286,11 @@ while run:
                 menu = Menu(constants.screenWidth, constants.screenHeight)
         elif game_paused:
             # Pause menü olaylarını işle
+            playeroranx = player.x/constants.screenWidth
+            playerorany = player.y/constants.screenHeight
+            bossoranx = boss.x/constants.screenWidth
+            bossorany = boss.y/constants.screenHeight
             result = menu.handle_event(event, (constants.screenWidth, constants.screenHeight), sfx_manager)
-
             if result == "resume":
                 game_paused = False
             elif result == "try_again":
@@ -306,30 +304,10 @@ while run:
                 boss.attack_cooldown = 2000
                 boss.dash_speed = constants.BOSS_SPEED * 5
                 # Mevcut çözünürlüğe göre konumları ayarla
-                if constants.screenWidth == 800 and constants.screenHeight == 600:
-                    # 800x600 için konumlar
-                    player.x = 200
-                    player.y = 400
-                    boss.x = 400
-                    boss.y = 350
-                elif constants.screenWidth == 1000 and constants.screenHeight == 800:
-                    # 1000x800 için konumlar
-                    player.x = 300
-                    player.y = 500
-                    boss.x = 400
-                    boss.y = 450
-                elif constants.screenWidth == 1280 and constants.screenHeight == 720:
-                    # 1280x720 için konumlar
-                    player.x = 400
-                    player.y = 450
-                    boss.x = 400
-                    boss.y = 400
-                else:
-                    # Tam ekran veya diğer çözünürlükler için
-                    player.x = 600
-                    player.y = 700
-                    boss.x = 1100
-                    boss.y = 750
+                player.x = 0.4 * constants.screenWidth
+                player.y = 0.6 * constants.screenHeight
+                boss.x = 0.6 * constants.screenWidth
+                boss.y = 0.55 * constants.screenHeight
 
                 print(f"Oyun yeniden başlatıldı. Çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
                 print(f"Boss konumu: x={boss.x}, y={boss.y}")
@@ -351,32 +329,18 @@ while run:
                     win = pygame.display.set_mode((new_width, new_height))
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
+                player.rect.width = 96*(constants.screenWidth/1920)
+                player.rect.height = 86*(constants.screenHeight/1080)
+                boss.rect.width = 144*(constants.screenWidth/1920)
+                boss.rect.height = 124*(constants.screenHeight/1080)
+                player.x = playeroranx * constants.screenWidth
+                player.y = playerorany * constants.screenHeight
+                boss.x = bossoranx * constants.screenWidth
+                boss.y = bossorany * constants.screenHeight
+
 
                 # Çözünürlük değişiminde konumları sabit değerlerle ayarla
-                if result[1] == "fullscreen":
-                    # Tam ekran için konumlar
-                    player.x = 600
-                    player.y = 700
-                    boss.x = 1100
-                    boss.y = 750
-                elif result[1] == (800, 600):
-                    # 800x600 için konumlar
-                    player.x = 200
-                    player.y = 400
-                    boss.x = 400
-                    boss.y = 350
-                elif result[1] == (1000, 800):
-                    # 1000x800 için konumlar
-                    player.x = 300
-                    player.y = 500
-                    boss.x = 400
-                    boss.y = 450
-                elif result[1] == (1280, 720):
-                    # 1280x720 için konumlar
-                    player.x = 400
-                    player.y = 450
-                    boss.x = 400
-                    boss.y = 400
+
 
                 print(f"Pause menüsünden yeni çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
                 print(f"Boss konumu: x={boss.x}, y={boss.y}")

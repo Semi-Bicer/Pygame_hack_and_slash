@@ -77,7 +77,7 @@ class Menu:
         bg_path = os.path.join("assets", "pics", "Shura_Rebirth.jpeg")
         if os.path.exists(bg_path):
             self.background_image = pygame.image.load(bg_path)
-            self.background_image = pygame.transform.scale(self.background_image, (screen_width, screen_height))
+            self.background_image = pygame.transform.scale(self.background_image, (self.screen_width, self.screen_height))
 
         # Ölüm ekranı arka plan görseli
         self.death_image = None
