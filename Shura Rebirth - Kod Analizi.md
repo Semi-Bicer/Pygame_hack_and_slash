@@ -17,8 +17,25 @@ Bugün s-m-i çalıştı. toplantıda hikaye belirlendi, github eğitimi yapıld
 - [ ] Asgore'dan ilham alınarak seçilen boss saldırısı (renkli gözler)
 
 ## 2. gün
+Karakterin iyleştirme mekaniklerini iyleştirme ve eklemeler yapıldı.
+
+Karakterin 3 iyleştirme hakkı var. Ayrıca iyleştirme sırasında artık herhangi bir aksiyon alamaz hale geldi.
+
+>[!info]  if not player.is_healing: player.move(keys, clicks)
+
+Başarılı boss saldırılarında impact frame eklemesi yapıldı. Bunu gerçekleştiren metodun ayrıntıları functions.py 'da bulabilirsiniz.
+
 ## 3. gün
 ## 4. gün
+Ana menüdeki çözünürlük ayarı değiştirildi. firstGame.py de while run döngüsünde büyük değişikliklere ve optimizasyonlara gidildi. Yaklaşık 100 satır kod silindi. 243.satırdan itibaren kod daha optimize durumda.
+
+Çözünürlüğün tamamen bitmesi için 5 şeyin eklenmezi gerekiyor:
+
+- [ ] Karakterlerin hitboxlarının büyüklüğü çözünürlüğe göre değişmeli
+- [ ] Karakterlerin hurtboxlarının büyüklüğü çözünürlüğe göre değişmeli
+- [ ] Karakterlerin spritelarının büyüklüğü çözünürlüğe göre değişmeli
+- [ ] Karakterlerin konumları çözünürlüğe göre değişmeli
+- [ ] Karakterlerin hızları çözünürlüğe göre değişmeli
 ## 5. gün
 
 ## 6. gün
