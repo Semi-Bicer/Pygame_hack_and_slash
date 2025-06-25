@@ -98,7 +98,7 @@ class Menu:
 
         # Menü öğeleri
         self.main_menu_items = ["PLAY", "OPTIONS", "QUIT"]
-        self.pause_menu_items = ["RESUME", "OPTIONS", "QUIT"]
+        self.pause_menu_items = ["RESUME", "RETRY", "OPTIONS", "MAIN MENU", "QUIT"]
         self.options_menu_items = ["CONTROLS", "VIDEO", "AUDIO", "BACK"]
         self.video_menu_items = ["800x600", "1000x800", "1280x720", "Full Screen", "BACK"]
         self.audio_menu_items = ["SFX", "MUSIC", "BACK"]
@@ -678,12 +678,16 @@ class Menu:
         elif self.current_menu == "pause":
             if self.selected_item == 0:                 # RESUME
                 return "resume"
-            elif self.selected_item == 1:               # OPTIONS
+            elif self.selected_item == 1:               # RETRY
+                return "try_again"
+            elif self.selected_item == 2:               # OPTIONS
                 self.previous_menu = "pause"            # Pause'dan geldiğimizi kaydet
                 self.current_menu = "options"
                 self.selected_item = 0
                 return "options"
-            elif self.selected_item == 2:               # QUIT
+            elif self.selected_item == 3:               # MAIN MENU
+                return "main_menu"
+            elif self.selected_item == 4:               # QUIT
                 return "quit"
 
         elif self.current_menu == "options":

@@ -39,6 +39,11 @@ Ana menüdeki çözünürlük ayarı değiştirildi. firstGame.py de while run d
 ## 5. gün
 
 ## 6. gün
+>Karakter iyileştirme yeteneği kullanırken dash atabiliyor ve hareket edebiliyor!
+- [x] Resume butonu
+- [x] Main Menu butonu
+- [ ] Boss hitbox - Try Again veya Retry yapıldığında başlangıç konumlarının iyileştirilmesi
+- [ ] Boss hitbox - sprite hizası
 ## 7. gün
 # 2.Hafta
 

@@ -26,7 +26,7 @@ class Boss:
         # Hitbox'u karakterin gövdesine hizala
         self.rect = pygame.Rect(
             self.x  + (self.original_width // 2),  # Yatay olarak ortala
-            self.y + self.original_height // 3,  # Biraz daha yukarıda olsun
+            self.y + (self.original_height // 3),  # Biraz daha yukarıda olsun
             self.original_width*1.125,
             self.original_height*(124/108)
         )

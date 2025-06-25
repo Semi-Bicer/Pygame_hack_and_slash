@@ -25,34 +25,6 @@ bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
 
 bullets = []
 
-# Başlangıç konumlarını çözünürlüğe göre ayarla
-char_x = 300
-char_y = 500
-boss_x = 700
-boss_y = 550
-
-# 800x600 için
-if constants.screenWidth == 800 and constants.screenHeight == 600:
-    char_x = 200
-    char_y = 400
-    boss_x = 600
-    boss_y = 450
-# 1280x720 için
-elif constants.screenWidth == 1280 and constants.screenHeight == 720:
-    char_x = 400
-    char_y = 450
-    boss_x = 880
-    boss_y = 500
-# Tam ekran veya diğer çözünürlükler için
-elif constants.screenWidth > 1280 or constants.screenHeight > 800:
-    char_x = 600
-    char_y = 700
-    boss_x = 1100
-    boss_y = 750
-
-print(f"Başlangıç çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
-print(f"Başlangıç konumları: Karakter({char_x}, {char_y}), Boss({boss_x}, {boss_y})")
-
 # Oyuncu
 player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)
 player.set_sfx_manager(sfx_manager)
@@ -116,7 +88,7 @@ start_button = None
 # Intro değişkenleri
 intro_active = False
 intro_start_time = 0
-intro_duration = 15000  # 15 saniye (ms cinsinden)
+intro_duration = 1000  # 15 saniye (ms cinsinden)
 
 # Skip butonu için değişkenler
 skip_button_rect = pygame.Rect(0, 0, 100, 40)  # Başlangıçta boş, daha sonra konumlandırılacak
@@ -237,6 +209,25 @@ while run:
                 sfx_manager.set_sfx_volume(menu.sfx_volume)
                 sfx_manager.play_music("battle", fade_ms=1000)
 
+                # Oyunu yeniden kur (Main Menu için tekrar oyun kurulumu yapmaya gerek kalmayacak)
+                player.health = constants.CHAR_HEALTH
+                boss.health = constants.BOSS_HEALTH
+                boss.phase = 1
+                boss.action = "idle"
+                boss.phase_transition = False
+                boss.invincible = False
+                boss.attack_cooldown = 2000
+                boss.dash_speed = constants.BOSS_SPEED * 5
+
+                # Mevcut çözünürlüğe göre konumları ayarla
+                # player.x = 0.4 * constants.screenWidth
+                # player.y = 0.6 * constants.screenHeight
+                # boss.x = 0.6 * constants.screenWidth
+                # boss.y = 0.55 * constants.screenHeight
+
+                print(f"Oyun yeniden başlatıldı. Çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
+                print(f"Boss konumu: x={boss.x}, y={boss.y}")
+
             elif result == "quit":
                 run = False
                 break
@@ -354,6 +345,11 @@ while run:
                 # Menüler arası geçiş için bir şey yapmaya gerek yok
                 # Menü sınıfı içinde current_menu zaten güncelleniyor
                 pass
+            elif result == "main_menu":
+                game_active = False
+                game_paused = False
+                menu.current_menu = "main"
+                menu.selected_item = 0
             elif result == "quit":
                 run = False
                 break
