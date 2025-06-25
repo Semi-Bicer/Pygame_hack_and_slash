@@ -249,6 +249,13 @@ while run:
                     constants.screenWidth = display_info.current_w
                     constants.screenHeight = display_info.current_h
                     is_fullscreen = True
+
+                    if result[1] == "fullscreen":
+                        # Tam ekran için konumlar
+                        player.x = 600
+                        player.y = 700
+                        boss.x = 1100
+                        boss.y = 750
                 else:
                     # Normal pencere modu
                     new_width, new_height = result[1]
@@ -256,31 +263,24 @@ while run:
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
 
-                # Çözünürlük değişiminde konumları sabit değerlerle ayarla
-                if result[1] == "fullscreen":
-                    # Tam ekran için konumlar
-                    player.x = 600
-                    player.y = 700
-                    boss.x = 1100
-                    boss.y = 750
-                elif result[1] == (800, 600):
-                    # 800x600 için konumlar
-                    player.x = 200
-                    player.y = 400
-                    boss.x = 600
-                    boss.y = 450
-                elif result[1] == (1000, 800):
-                    # 1000x800 için konumlar
-                    player.x = 300
-                    player.y = 500
-                    boss.x = 700
-                    boss.y = 550
-                elif result[1] == (1280, 720):
-                    # 1280x720 için konumlar
-                    player.x = 400
-                    player.y = 450
-                    boss.x = 880
-                    boss.y = 500
+                    if result[1] == (800, 600):
+                        # 800x600 için konumlar
+                        player.x = 200
+                        player.y = 400
+                        boss.x = 600
+                        boss.y = 450
+                    elif result[1] == (1000, 800):
+                        # 1000x800 için konumlar
+                        player.x = 300
+                        player.y = 500
+                        boss.x = 700
+                        boss.y = 550
+                    elif result[1] == (1280, 720):
+                        # 1280x720 için konumlar
+                        player.x = 400
+                        player.y = 450
+                        boss.x = 880
+                        boss.y = 500
 
                 print(f"Yeni çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
                 print(f"Boss konumu: x={boss.x}, y={boss.y}")
@@ -352,31 +352,6 @@ while run:
                     constants.screenWidth = new_width
                     constants.screenHeight = new_height
 
-                # Çözünürlük değişiminde konumları sabit değerlerle ayarla
-                if result[1] == "fullscreen":
-                    # Tam ekran için konumlar
-                    player.x = 600
-                    player.y = 700
-                    boss.x = 1100
-                    boss.y = 750
-                elif result[1] == (800, 600):
-                    # 800x600 için konumlar
-                    player.x = 200
-                    player.y = 400
-                    boss.x = 400
-                    boss.y = 350
-                elif result[1] == (1000, 800):
-                    # 1000x800 için konumlar
-                    player.x = 300
-                    player.y = 500
-                    boss.x = 400
-                    boss.y = 450
-                elif result[1] == (1280, 720):
-                    # 1280x720 için konumlar
-                    player.x = 400
-                    player.y = 450
-                    boss.x = 400
-                    boss.y = 400
 
                 print(f"Pause menüsünden yeni çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
                 print(f"Boss konumu: x={boss.x}, y={boss.y}")

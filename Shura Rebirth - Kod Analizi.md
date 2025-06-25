@@ -26,6 +26,8 @@ Karakterin 3 iyleştirme hakkı var. Ayrıca iyleştirme sırasında artık herh
 Başarılı boss saldırılarında impact frame eklemesi yapıldı. Bunu gerçekleştiren metodun ayrıntıları functions.py 'da bulabilirsiniz.
 
 ## 3. gün
+menu.py , firstGame.py ve boss.py dosyaları optimize edildi. Spagetti kodlar çıkarıldı ve kod daha temiz hale getirildi.
+
 ## 4. gün
 ## 5. gün
 
