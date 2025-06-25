@@ -1,4 +1,3 @@
-### firstGame.py
 import pygame
 import constants
 import os
@@ -50,8 +49,8 @@ elif constants.screenWidth > 1280 or constants.screenHeight > 800:
     boss_x = 1100
     boss_y = 750
 
-print(f"Başlangıç çözünürlük: {constants.screenWidth}x{constants.screenHeight}")
-print(f"Başlangıç konumları: Karakter({char_x}, {char_y}), Boss({boss_x}, {boss_y})")
+print(f"Baslangic cozunurluk: {constants.screenWidth}x{constants.screenHeight}")
+print(f"Baslangic konumlari: Karakter({char_x}, {char_y}), Boss({boss_x}, {boss_y})")
 
 # Oyuncu
 player = Character(constants.CHAR_X, constants.CHAR_Y, 96, 84, constants.screenWidth, constants.screenHeight, 0)

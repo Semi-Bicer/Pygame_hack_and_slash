@@ -1,4 +1,3 @@
-#boss.py
 import pygame
 import math
 import os
