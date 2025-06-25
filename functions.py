@@ -3,11 +3,14 @@ import os
 import pygame
 import constants
 
-def load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites):
+def load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites, key):
     sheet = pygame.image.load(sheet_path).convert_alpha()
+
     frames = []
+
     for i in range(num_sprites):
         frame = sheet.subsurface((i * sprite_width, 0, sprite_width, sprite_height))
+        frame = pygame.transform.scale(frame, (sprite_width*constants.ORAN_W[key], sprite_height*constants.ORAN_H[key]))
         frames.append(frame)
     return frames
 
@@ -24,8 +27,8 @@ def load_individual_sprites(directory_path):
         print(f"Error loading sprites from {directory_path}: {e}")
     return frames
 
-def load_and_scale_sheet(sheet_path, sprite_width, sprite_height, num_sprites, scale=constants.scale):
-    frames = load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites)
+def load_and_scale_sheet(sheet_path, sprite_width, sprite_height, num_sprites, key, scale=constants.scale, ):
+    frames = load_sprite_sheet(sheet_path, sprite_width, sprite_height, num_sprites,key)
     scaled_frames = []
     for frame in frames:
         original_width = frame.get_width()

@@ -5,6 +5,7 @@ import os
 import random
 import constants
 from functions import load_and_scale_sheet, draw_health_bar
+from menu import Menu
 
 
 class Boss:
@@ -12,35 +13,30 @@ class Boss:
         self.scale = constants.BOSS_SCALE
         self.original_width = constants.BOSS_FRAME_WIDTH
         self.original_height = constants.BOSS_FRAME_HEIGHT
-        self.width = int(self.original_width * self.scale)
-        self.height = int(self.original_height * self.scale)
 
-        # Hitbox için offset değerleri
-        self.hitbox_offset_x = constants.BOSS_HITBOX_OFFSET_X * self.scale
-        self.hitbox_offset_y = constants.BOSS_HITBOX_OFFSET_Y * self.scale
+        # Hitbox için offset de, self.scaleerleri
 
-        # Hitbox boyutlarını daha küçük ayarla - sadece karakterin çiziminin bulunduğu kısmı kapsa
-        self.hitbox_width = int(self.width * 0.4)  # Frame genişliğinin %40'ı
-        self.hitbox_height = int(self.height * 0.5)  # Frame yüksekliğinin %50'si
+
+        # Hitbox boyutlarını daha küçük ayarla - sadece karakterin çiziminin bulundu, self.scaleu kısmı kapsa
 
         # Pozisyon ayarları
-        self.x = x - self.width // 2
-        self.y = y - self.height // 2
+        self.x = x
+        self.y = y
 
         # Hitbox'u karakterin gövdesine hizala
         self.rect = pygame.Rect(
-            self.x + (self.width - self.hitbox_width) // 2,  # Yatay olarak ortala
-            self.y + (self.height - self.hitbox_height) // 3,  # Biraz daha yukarıda olsun
-            self.hitbox_width,
-            self.hitbox_height
+            self.x  + (self.original_width // 2),  # Yatay olarak ortala
+            self.y + self.original_height // 3,  # Biraz daha yukarıda olsun
+            self.original_width*1.125,
+            self.original_height*(124/108)
         )
 
         # Atak için çarpışma dikdörtgeni
-        self.attack_width = 60  # Saldırı genişliği
-        self.attack_height = 100  # Saldırı yüksekliği
+        self.attack_width = 60  # Saldırı genişli, self.scalei
+        self.attack_height = 100  # Saldırı yüksekli, self.scalei
         self.attack_rect = pygame.Rect(0, 0, self.attack_width, self.attack_height)  # Saldırı hitbox'ı
 
-        # Saldırı frame'leri - her saldırı tipi için hangi frame'lerde hasar verileceği
+        # Saldırı frame'leri - her saldırı tipi için hangi frame'lerde hasar verilece, self.scalei
         self.attack_frames = {
             "attack1": [3, 4],  # attack1 animasyonunda 3. ve 4. frame'lerde hasar ver
             "attack2": [2, 3],  # attack2 animasyonunda 2. ve 3. frame'lerde hasar ver
@@ -54,6 +50,7 @@ class Boss:
         # Ses yöneticisi
         self.sfx_manager = sfx_manager
 
+
         self.idleCount = 0
         self.frame_index = 0
         self.last_update = pygame.time.get_ticks()
@@ -66,7 +63,7 @@ class Boss:
         self.invincible = False
         self.phase_transition = False
 
-        # Boss'un karaktere yaklaşabileceği minimum mesafe - daha yakına gelmez
+        # Boss'un karaktere yaklaşabilece, self.scalei minimum mesafe - daha yakına gelmez
         self.min_follow_distance = 50  # Sabit 50 piksel mesafe
         self.follow_distance = constants.BOSS_FOLLOW_DISTANCE
 
@@ -81,27 +78,51 @@ class Boss:
         self.dash_speed = 15
         self.attack_cooldown = 2000
         self.last_attack_time = pygame.time.get_ticks()
-
+        self.key = 3
+        self.old_key = 3
         assets = os.path.join("assets", "Boss")
         self.animations = {
-            "attack1": load_and_scale_sheet(os.path.join(assets, "ATTACK 1.png"), self.original_width, self.original_height, 7, self.scale),
-            "attack1_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 1 (FLAMING SWORD).png"), self.original_width, self.original_height, 7, self.scale),
-            "attack2": load_and_scale_sheet(os.path.join(assets, "ATTACK 2.png"), self.original_width, self.original_height, 5, self.scale),
-            "attack2_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 2 (FLAMING SWORD).png"), self.original_width, self.original_height, 6, self.scale),
-            "attack3": load_and_scale_sheet(os.path.join(assets, "ATTACK 3.png"), self.original_width, self.original_height, 7, self.scale),
-            "attack3_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 3 (FLAMING SWORD).png"), self.original_width, self.original_height, 7, self.scale),
-            "jump_attack": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK.png"), self.original_width, self.original_height, 12, self.scale),
-            "jump_attack_flame": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK (FLAMING SWORD).png"), self.original_width, self.original_height, 11, self.scale),
-            "idle": load_and_scale_sheet(os.path.join(assets, "IDLE.png"), self.original_width, self.original_height, 6, self.scale),
-            "idle_flame": load_and_scale_sheet(os.path.join(assets, "IDLE (FLAMING SWORD).png"), self.original_width, self.original_height, 6, self.scale),
-            "run": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8, self.scale),
-            "run_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8, self.scale),
-            "dash": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8, self.scale),
-            "dash_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8, self.scale),
-            "hurt": load_and_scale_sheet(os.path.join(assets, "HURT.png"), self.original_width, self.original_height, 4, self.scale),
-            "hurt_flame": load_and_scale_sheet(os.path.join(assets, "HURT (FLAMING SWORD).png"), self.original_width, self.original_height, 4, self.scale),
-            "death": load_and_scale_sheet(os.path.join(assets, "DEATH.png"), self.original_width, self.original_height, 26, self.scale),
-            "shout": load_and_scale_sheet(os.path.join(assets, "SHOUT.png"), self.original_width, self.original_height, 17, self.scale),
+            "attack1": load_and_scale_sheet(os.path.join(assets, "ATTACK 1.png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "attack1_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 1 (FLAMING SWORD).png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "attack2": load_and_scale_sheet(os.path.join(assets, "ATTACK 2.png"), self.original_width, self.original_height, 5,self.key, self.scale),
+            "attack2_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 2 (FLAMING SWORD).png"), self.original_width, self.original_height, 6,self.key, self.scale),
+            "attack3": load_and_scale_sheet(os.path.join(assets, "ATTACK 3.png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "attack3_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 3 (FLAMING SWORD).png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "jump_attack": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK.png"), self.original_width, self.original_height, 12,self.key, self.scale),
+            "jump_attack_flame": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK (FLAMING SWORD).png"), self.original_width, self.original_height, 11,self.key, self.scale),
+            "idle": load_and_scale_sheet(os.path.join(assets, "IDLE.png"), self.original_width, self.original_height, 6,self.key, self.scale),
+            "idle_flame": load_and_scale_sheet(os.path.join(assets, "IDLE (FLAMING SWORD).png"), self.original_width, self.original_height, 6,self.key, self.scale),
+            "run": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "run_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "dash": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "dash_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "hurt": load_and_scale_sheet(os.path.join(assets, "HURT.png"), self.original_width, self.original_height, 4,self.key, self.scale),
+            "hurt_flame": load_and_scale_sheet(os.path.join(assets, "HURT (FLAMING SWORD).png"), self.original_width, self.original_height, 4,self.key, self.scale),
+            "death": load_and_scale_sheet(os.path.join(assets, "DEATH.png"), self.original_width, self.original_height, 26,self.key, self.scale),
+            "shout": load_and_scale_sheet(os.path.join(assets, "SHOUT.png"), self.original_width, self.original_height, 17,self.key, self.scale),
+        }
+
+    def reload(self):
+        assets = os.path.join("assets", "Boss")
+        self.animations = {
+            "attack1": load_and_scale_sheet(os.path.join(assets, "ATTACK 1.png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "attack1_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 1 (FLAMING SWORD).png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "attack2": load_and_scale_sheet(os.path.join(assets, "ATTACK 2.png"), self.original_width, self.original_height, 5,self.key, self.scale),
+            "attack2_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 2 (FLAMING SWORD).png"), self.original_width, self.original_height, 6,self.key, self.scale),
+            "attack3": load_and_scale_sheet(os.path.join(assets, "ATTACK 3.png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "attack3_flame": load_and_scale_sheet(os.path.join(assets, "ATTACK 3 (FLAMING SWORD).png"), self.original_width, self.original_height, 7,self.key, self.scale),
+            "jump_attack": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK.png"), self.original_width, self.original_height, 12,self.key, self.scale),
+            "jump_attack_flame": load_and_scale_sheet(os.path.join(assets, "JUMP ATTACK (FLAMING SWORD).png"), self.original_width, self.original_height, 11,self.key, self.scale),
+            "idle": load_and_scale_sheet(os.path.join(assets, "IDLE.png"), self.original_width, self.original_height, 6,self.key, self.scale),
+            "idle_flame": load_and_scale_sheet(os.path.join(assets, "IDLE (FLAMING SWORD).png"), self.original_width, self.original_height, 6,self.key, self.scale),
+            "run": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "run_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "dash": load_and_scale_sheet(os.path.join(assets, "RUN.png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "dash_flame": load_and_scale_sheet(os.path.join(assets, "RUN (FLAMING SWORD).png"), self.original_width, self.original_height, 8,self.key, self.scale),
+            "hurt": load_and_scale_sheet(os.path.join(assets, "HURT.png"), self.original_width, self.original_height, 4,self.key, self.scale),
+            "hurt_flame": load_and_scale_sheet(os.path.join(assets, "HURT (FLAMING SWORD).png"), self.original_width, self.original_height, 4,self.key, self.scale),
+            "death": load_and_scale_sheet(os.path.join(assets, "DEATH.png"), self.original_width, self.original_height, 26,self.key, self.scale),
+            "shout": load_and_scale_sheet(os.path.join(assets, "SHOUT.png"), self.original_width, self.original_height, 17,self.key, self.scale),
         }
 
 
@@ -130,7 +151,7 @@ class Boss:
                 self.frame_index = 0
                 self.last_update = pygame.time.get_ticks()
 
-                # Shout animasyonu başladığında ses çal
+                # Shout animasyonu başladı, self.scaleında ses çal
                 if self.sfx_manager:
                     self.sfx_manager.play_sound("shout")
 
@@ -138,7 +159,7 @@ class Boss:
         if self.is_dashing:
             return
 
-        # Yatay mesafeyi hesapla - player'in sol kenarı ile boss'un sağ kenarı arasındaki mesafe
+        # Yatay mesafeyi hesapla - player'in sol kenarı ile boss'un sa, self.scale kenarı arasındaki mesafe
         dx = player.rect.left - self.rect.right
 
         # Dikey mesafeyi hesapla - player'in tabanı ile boss'un tabanı arasındaki mesafe
@@ -150,7 +171,7 @@ class Boss:
         if dist <= self.min_follow_distance:
             return
 
-        # Dash yönünü belirle - ağırlıklı olarak yatay hareket, az dikey hareket
+        # Dash yönünü belirle - a, self.scaleırlıklı olarak yatay hareket, az dikey hareket
         dash_x = dx / dist
         dash_y = dy / dist * 0.5  # Dikey hareketi sınırla
 
@@ -164,12 +185,18 @@ class Boss:
     def update(self, player):
         now = pygame.time.get_ticks()
         # Hitbox'u karakterin gövdesine hizala
-        self.rect.x = self.x + (self.width - self.hitbox_width) // 2
-        self.rect.y = self.y + (self.height - self.hitbox_height) // 3  # Biraz daha yukarıda olsun
+        self.rect.x = self.x + self.original_width   // 2
+        self.rect.y = self.y + self.original_height // 3  # Biraz daha yukarıda olsun
+
+        self.key = Menu.current_resolution_index
+        if self.key != self.old_key:
+            self.reload()
+            self.old_key = self.key
+
 
         # Saldırı hitbox'ını güncelle - self.rect'in bitişinden itibaren
-        if not self.flip:  # Sağa bakma durumu
-            self.attack_rect.x = self.rect.right  # self.rect'in sağ kenarından başla
+        if not self.flip:  # Sa, self.scalea bakma durumu
+            self.attack_rect.x = self.rect.right  # self.rect'in sa, self.scale kenarından başla
             self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
         else:  # Sola bakma durumu
             self.attack_rect.x = self.rect.left - self.attack_width  # self.rect'in sol kenarından başla
@@ -208,8 +235,8 @@ class Boss:
             if now - self.dash_start_time < self.dash_duration:
                 self.x += self.dash_direction[0] * self.dash_speed
                 self.y += self.dash_direction[1] * self.dash_speed
-                self.x = max(0, min(self.x, constants.screenWidth - self.width))
-                self.y = max(0, min(self.y, constants.screenHeight - self.height))
+                self.x = max(0, min(self.x, constants.screenWidth - self.original_width))
+                self.y = max(0, min(self.y, constants.screenHeight - self.original_height))
             else:
                 self.is_dashing = False
                 self.action = "idle"
@@ -218,14 +245,14 @@ class Boss:
         if self.action.startswith("attack") or self.action == "jump_attack":
             if self.frame_index < len(self.get_animation()):
                 # Saldırı sırasında hitbox'ı aktif et
-                if not self.flip:  # Sağa bakma durumu
-                    self.attack_rect.x = self.rect.right  # self.rect'in sağ kenarından başla
+                if not self.flip:  # Sa, self.scalea bakma durumu
+                    self.attack_rect.x = self.rect.right  # self.rect'in sa, self.scale kenarından başla
                     self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
                 else:  # Sola bakma durumu
                     self.attack_rect.x = self.rect.left - self.attack_width  # self.rect'in sol kenarından başla
                     self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
 
-                # Yeni frame'e geçtiğimizde hasar verme durumunu sıfırla
+                # Yeni frame'e geçti, self.scaleimizde hasar verme durumunu sıfırla
                 attack_key = self.action
                 if "_flame" in attack_key:
                     attack_key = attack_key.replace("_flame", "")
@@ -255,7 +282,7 @@ class Boss:
         dist = math.hypot(dx, dy)
 
 
-        # Player'in solunda mı sağında mı olduğunu belirle
+        # Player'in solunda mı sa, self.scaleında mı oldu, self.scaleunu belirle
         self.flip = dx < 0  # Player solda ise sola dön
 
         should_move = False
@@ -272,7 +299,7 @@ class Boss:
             if dist > self.min_follow_distance:  # Çok yakına gelmesin
                 speed = constants.BOSS_SPEED * (self.phase2_speed_multiplier if self.phase == 2 else 1)
 
-                # Sadece yatay hareket et - player'in sağına veya soluna git
+                # Sadece yatay hareket et - player'in sa, self.scaleına veya soluna git
                 self.x += speed * (dx / dist)
 
                 # Dikey olarak player ile aynı taban seviyesinde ol
@@ -299,15 +326,15 @@ class Boss:
     def choose_attack(self):
         options = ["attack1", "attack2", "attack3", "jump_attack"] * (2 if self.phase == 2 else 1)
         self.action = random.choice(options)
-        self.has_dealt_damage = False  # Yeni saldırı başladığında hasar verme durumunu sıfırla
+        self.has_dealt_damage = False  # Yeni saldırı başladı, self.scaleında hasar verme durumunu sıfırla
 
-        # Eğer attack1 seçildiyse ve ses yöneticisi varsa bossAttack1 sesini çal
+        # E, self.scaleer attack1 seçildiyse ve ses yöneticisi varsa bossAttack1 sesini çal
         if self.action == "attack1" and self.sfx_manager:
             self.sfx_manager.play_sound("bossAttack1")
 
     def check_parry(self, player):
         """Player'in parry durumunu kontrol eder ve başarılı parry durumunda boss'u durdurur"""
-        # Eğer boss saldırı durumundaysa ve player parry yapıyorsa
+        # E, self.scaleer boss saldırı durumundaysa ve player parry yapıyorsa
         if (self.action.startswith("attack") or self.action == "jump_attack" or
             self.action.startswith("attack_flame") or self.action == "jump_attack_flame") and player.is_parrying:
 
@@ -368,6 +395,7 @@ class Boss:
         return False  # Çarpışma yok
 
     def draw(self, win):
+        self.win = win
         animation_cooldown = constants.BOSS_ANIMATION_COOLDOWN
         if self.phase == 2:
             animation_cooldown = int(animation_cooldown / self.phase2_speed_multiplier)
@@ -382,9 +410,9 @@ class Boss:
         sprite = frames[self.frame_index]
         flipped_sprite = pygame.transform.flip(sprite, self.flip, False)
 
-        # Sprite'ı çiz - frame boyutları değişmeden
-        win.blit(flipped_sprite, (self.x - constants.BOSS_HITBOX_OFFSET_X * self.scale, self.y - constants.BOSS_HITBOX_OFFSET_Y * self.scale))
-        #pygame.draw.rect(win, constants.BLUE, self.rect, 2)
+        # Sprite'ı çiz - frame boyutları de, self.scaleişmeden
+        win.blit(flipped_sprite, (self.x+20 , self.y-35))
+        pygame.draw.rect(win, constants.BLUE, self.rect, 2)
 
         draw_health_bar(win, self.x + 55, self.y + 25, self.health, self.maxHealth)
 

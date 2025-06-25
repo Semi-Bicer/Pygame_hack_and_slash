@@ -29,6 +29,15 @@ Başarılı boss saldırılarında impact frame eklemesi yapıldı. Bunu gerçek
 menu.py , firstGame.py ve boss.py dosyaları optimize edildi. Spagetti kodlar çıkarıldı ve kod daha temiz hale getirildi.
 
 ## 4. gün
+Ana menüdeki çözünürlük ayarı değiştirildi. firstGame.py de while run döngüsünde büyük değişikliklere ve optimizasyonlara gidildi. Yaklaşık 100 satır kod silindi. 243.satırdan itibaren kod daha optimize durumda.
+
+Çözünürlüğün tamamen bitmesi için 5 şeyin eklenmezi gerekiyor:
+
+- [ ] Karakterlerin hitboxlarının büyüklüğü çözünürlüğe göre değişmeli
+- [ ] Karakterlerin hurtboxlarının büyüklüğü çözünürlüğe göre değişmeli
+- [ ] Karakterlerin spritelarının büyüklüğü çözünürlüğe göre değişmeli
+- [ ] Karakterlerin konumları çözünürlüğe göre değişmeli
+- [ ] Karakterlerin hızları çözünürlüğe göre değişmeli
 ## 5. gün
 
 ## 6. gün
