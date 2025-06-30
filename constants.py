@@ -45,9 +45,9 @@ POSITIONS = {
     # Tam ekran için konumlar (varsayılan 1920x1080 olarak kabul edildi)
     "fullscreen": {
         "CHAR_X": 700,
-        "CHAR_Y": 700,
+        "CHAR_Y": 650,
         "BOSS_X": 1100,
-        "BOSS_Y": 750
+        "BOSS_Y": 575
     }
 }
 ORAN_W = (80/198, 100/192, 2/3, 1)
