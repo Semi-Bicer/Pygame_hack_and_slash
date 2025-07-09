@@ -76,6 +76,8 @@ class Projectile:
 
 # Menü sistemi                                                                                                      #💥
 menu = Menu(constants.screenWidth, constants.screenHeight)                                                          #💥
+# Menu'ya karakter ve boss referanslarını geç
+menu.set_menu_characters(player, boss)
 
 # Oyun Değişkenleri
 clock = pygame.time.Clock()
@@ -273,6 +275,7 @@ while run:
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
                 # Menü boyutlarını güncelle
                 menu = Menu(constants.screenWidth, constants.screenHeight)
+                menu.set_menu_characters(player, boss)
         elif game_paused:
             # Pause menü olaylarını işle
             playeroranx = player.x/constants.screenWidth
@@ -336,6 +339,7 @@ while run:
 
                 bg = SamuraiBackground(constants.screenWidth, constants.screenHeight)
                 menu = Menu(constants.screenWidth, constants.screenHeight)
+                menu.set_menu_characters(player, boss)
                 # Pause menüsüne geri dön
                 menu.current_menu = "pause"
                 menu.selected_item = 0
@@ -348,6 +352,9 @@ while run:
                 game_paused = False
                 menu.current_menu = "main"
                 menu.selected_item = 0
+                # Savaş müziğini durdur ve menu müziğini başlat
+                sfx_manager.stop_music(fade_ms=500)
+                sfx_manager.play_music("menu", fade_ms=1000)
             elif result == "quit":
                 run = False
                 break

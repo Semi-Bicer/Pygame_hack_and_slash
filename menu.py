@@ -72,12 +72,14 @@ class Menu:
         self.current_menu = "main"              # main, options, controls, video, audio
         self.previous_menu = "main"             # Önceki menüyü takip etmek için
 
-        # Ana menü arka plan görseli
+        # Ana menü arka plan görseli kaldırıldı - siyah arkaplan kullanılacak                                👁️
         self.background_image = None
-        bg_path = os.path.join("assets", "pics", "Shura_Rebirth.jpeg")
-        if os.path.exists(bg_path):
-            self.background_image = pygame.image.load(bg_path)
-            self.background_image = pygame.transform.scale(self.background_image, (self.screen_width, self.screen_height))
+
+        # Ana menü animasyonları için
+        self.menu_character = None
+        self.menu_boss = None
+        self.animation_timer = 0
+        self.animation_cooldown = 100                                                                       #👁️
 
         # Ölüm ekranı arka plan görseli
         self.death_image = None
@@ -103,6 +105,11 @@ class Menu:
         self.video_menu_items = ["800x600", "1000x800", "1280x720", "Full Screen", "BACK"]
         self.audio_menu_items = ["SFX", "MUSIC", "BACK"]
         self.selected_item = 0
+
+    def set_menu_characters(self, character, boss):
+        """Ana menü için karakter ve boss referanslarını ayarla"""                                          #👁️
+        self.menu_character = character
+        self.menu_boss = boss                                                                               #👁️
 
         # Ses ayarları
         self.sfx_volume = 0.5
@@ -158,10 +165,11 @@ class Menu:
             return self.draw_win_menu(win, sfx_manager)
 
     def draw_main_menu(self, win, sfx_manager=None):
-        if self.background_image:
-            win.blit(self.background_image, (0, 0))
-        else:
-            win.fill(constants.BLACK)
+        # Siyah arkaplan
+        win.fill(constants.BLACK)
+
+        # Karakter ve boss animasyonlarını çiz              👁️
+        self.draw_menu_animations(win)
 
         # Başlık
         title_text = self.font_large.render("SHURA REBIRTH", True, self.title_color)
@@ -200,6 +208,63 @@ class Menu:
             menu_rects.append(button.rect)
 
         return menu_rects
+
+    def draw_menu_animations(self, win):                                                            #👁️ tamamı
+        """Ana menüde karakter ve boss animasyonlarını çiz"""
+        if not self.menu_character or not self.menu_boss:
+            return
+
+        current_time = pygame.time.get_ticks()
+
+        # Animasyon timer'ını güncelle
+        if current_time - self.animation_timer >= self.animation_cooldown:
+            self.animation_timer = current_time
+
+            # Karakter idle animasyonu
+            if hasattr(self.menu_character, 'animation_list') and len(self.menu_character.animation_list) > 0:
+                idle_frames = self.menu_character.animation_list[0]  # 0: idle animasyonu
+                if len(idle_frames) > 0:
+                    self.menu_character.frame_index = (self.menu_character.frame_index + 1) % len(idle_frames)
+                    self.menu_character.image = idle_frames[self.menu_character.frame_index]
+
+            # Boss idle animasyonu
+            if hasattr(self.menu_boss, 'animations') and 'idle' in self.menu_boss.animations:
+                idle_frames = self.menu_boss.animations['idle']
+                if len(idle_frames) > 0:
+                    self.menu_boss.frame_index = (self.menu_boss.frame_index + 1) % len(idle_frames)
+
+        # Basit konum ayarları - manuel değiştirilebilir
+        char_scale = 4
+        boss_scale = 4
+
+        # Karakter konumu (sol taraf)
+        char_x = 150
+        char_y = 100
+
+        # Boss konumu (sağ taraf)
+        boss_x = 950
+        boss_y = 0
+
+        # Karakter çiz (boyutu artırılmış)
+        if hasattr(self.menu_character, 'image') and self.menu_character.image:
+            # Karakteri büyüt
+            char_image = pygame.transform.scale(self.menu_character.image,
+                                              (int(self.menu_character.image.get_width() * char_scale),
+                                               int(self.menu_character.image.get_height() * char_scale)))
+            win.blit(char_image, (char_x, char_y))
+
+        # Boss çiz (boyutu artırılmış)
+        if hasattr(self.menu_boss, 'animations') and 'idle' in self.menu_boss.animations:
+            idle_frames = self.menu_boss.animations['idle']
+            if len(idle_frames) > 0:
+                boss_image = idle_frames[self.menu_boss.frame_index]
+                # Boss'u sola çevir (karaktere bakacak şekilde)
+                boss_image = pygame.transform.flip(boss_image, True, False)
+                # Boss'u büyüt
+                boss_image = pygame.transform.scale(boss_image,
+                                                  (int(boss_image.get_width() * boss_scale),
+                                                   int(boss_image.get_height() * boss_scale)))
+                win.blit(boss_image, (boss_x, boss_y))
 
     def draw_pause_menu(self, win, sfx_manager=None):
         # Başlık
