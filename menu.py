@@ -98,6 +98,12 @@ class Menu:
         self.font_medium = pygame.font.Font(font_path, 48)
         self.font_small = pygame.font.Font(font_path, 24)
 
+        # Renk ayarları
+        self.title_color = (255, 255, 255)  # Beyaz başlık rengi
+        self.text_color = (200, 200, 200)   # Gri metin rengi
+        self.hover_color = (255, 255, 255)  # Beyaz hover rengi
+        self.selected_color = (255, 255, 255)  # Beyaz seçili rengi
+
         # Menü öğeleri
         self.main_menu_items = ["PLAY", "OPTIONS", "QUIT"]
         self.pause_menu_items = ["RESUME", "RETRY", "OPTIONS", "MAIN MENU", "QUIT"]
@@ -106,18 +112,12 @@ class Menu:
         self.audio_menu_items = ["SFX", "MUSIC", "BACK"]
         self.selected_item = 0
 
-    def set_menu_characters(self, character, boss):
-        """Ana menü için karakter ve boss referanslarını ayarla"""                                          #👁️
-        self.menu_character = character
-        self.menu_boss = boss                                                                               #👁️
-
         # Ses ayarları
         self.sfx_volume = 0.5
         self.music_volume = 0.5
 
         # Video ayarları
         self.resolutions = [(800, 600), (1000, 800), (1280, 720), "fullscreen"]
-        
 
         # Kontroller
         self.controls = {
@@ -130,12 +130,6 @@ class Menu:
             "Healing" : "E"
         }
 
-        # Menü için renkler
-        self.text_color = (200, 200, 200)       # Normal beyaz
-        self.selected_color = (255, 255, 255)   # Parlak beyaz (seçili öğe için)
-        self.hover_color = (255, 255, 255)      # Parlak beyaz (hover için)
-        self.title_color = (255, 255, 255)      # Parlak beyaz (başlık için)
-
         # Ses ayarı için çubuklar
         self.bar_width = 200
         self.bar_height = 20
@@ -143,6 +137,11 @@ class Menu:
         self.music_bar_rect = pygame.Rect(0, 0, self.bar_width, self.bar_height)
         self.dragging_sfx = False
         self.dragging_music = False
+
+    def set_menu_characters(self, character, boss):
+        """Ana menü için karakter ve boss referanslarını ayarla"""
+        self.menu_character = character
+        self.menu_boss = boss
 
     def draw(self, win, constants, sfx_manager=None):
         win.fill(constants.BLACK)

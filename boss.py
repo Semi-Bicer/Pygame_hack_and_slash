@@ -7,6 +7,8 @@ from functions import load_and_scale_sheet, draw_health_bar
 from menu import Menu
 
 
+
+
 class Boss:
     def __init__(self, x, y, player, sfx_manager=None):
         self.scale = constants.BOSS_SCALE
@@ -66,8 +68,8 @@ class Boss:
         self.min_follow_distance = 50  # Sabit 50 piksel mesafe
         self.follow_distance = constants.BOSS_FOLLOW_DISTANCE
 
-        self.phase2_speed_multiplier = 3
-        self.phase2_damage_multiplier = 2
+        self.phase2_speed_multiplier = 1.8
+        self.phase2_damage_multiplier = 1.8
         self.dash_cooldown = 3000
         self.last_dash_time = 0
         self.is_dashing = False
@@ -77,6 +79,12 @@ class Boss:
         self.dash_speed = 15
         self.attack_cooldown = 2000
         self.last_attack_time = pygame.time.get_ticks()
+
+        # Blade Rift Projectile mekanikleri
+        self.blade_rift_cooldown = constants.BLADE_RIFT_COOLDOWN
+        self.last_blade_rift_time = pygame.time.get_ticks()
+        self.blade_rift_projectiles = []  # Aktif projectile'lar
+
         self.key = 3
         self.old_key = 3
         assets = os.path.join("assets", "Boss")
@@ -99,6 +107,7 @@ class Boss:
             "hurt_flame": load_and_scale_sheet(os.path.join(assets, "HURT (FLAMING SWORD).png"), self.original_width, self.original_height, 4,self.key, self.scale),
             "death": load_and_scale_sheet(os.path.join(assets, "DEATH.png"), self.original_width, self.original_height, 26,self.key, self.scale),
             "shout": load_and_scale_sheet(os.path.join(assets, "SHOUT.png"), self.original_width, self.original_height, 17,self.key, self.scale),
+            "blade_rift": load_and_scale_sheet(os.path.join(assets, "spin_blade.png"), 64, 64, 7,self.key, self.scale),
         }
 
     def reload(self):
@@ -322,6 +331,14 @@ class Boss:
         else:
             self.action = "idle_flame" if self.phase == 2 else "idle"
 
+        # Blade Rift Projectile mekanikleri
+        # Phase 2'de blade rift projectile fırlat
+        if self.phase == 2 and now - self.last_blade_rift_time >= self.blade_rift_cooldown:
+            self.launch_blade_rift(player)
+
+        # Aktif blade rift projectile'ları güncelle
+        self.update_blade_rifts(player)
+
     def choose_attack(self):
         options = ["attack1", "attack2", "attack3", "jump_attack"] * (2 if self.phase == 2 else 1)
         self.action = random.choice(options)
@@ -420,3 +437,144 @@ class Boss:
             self.frame_index += 1
         #pygame.draw.rect(win, constants.RED, self.rect, 2)
         # Saldırı hitbox'ını göster
+
+        # Blade rift projectile'larını çiz
+        self.draw_blade_rifts(win)
+
+    def launch_blade_rift(self, player):
+        """Blade rift projectile'ını fırlat"""
+        current_time = pygame.time.get_ticks()
+
+        # Cooldown kontrolü
+        if current_time - self.last_blade_rift_time < self.blade_rift_cooldown:
+            return
+
+        # Yeni blade rift projectile oluştur
+        blade_rift = BladeRiftProjectile(
+            self.rect.centerx - 30,  # Boss'un merkezinden başlat
+            self.rect.centery - 30,
+            player.rect.centerx,     # Player'ı hedef al
+            player.rect.centery,
+            self.animations["blade_rift"],
+            self.scale
+        )
+
+        self.blade_rift_projectiles.append(blade_rift)
+        self.last_blade_rift_time = current_time
+
+    def update_blade_rifts(self, player):
+        """Blade rift projectile'larını güncelle"""
+        for projectile in self.blade_rift_projectiles[:]:
+            projectile.update(player)
+
+            # Ölü projectile'ları kaldır
+            if not projectile.alive:
+                self.blade_rift_projectiles.remove(projectile)
+                continue
+
+            # Player ile çarpışma kontrolü
+            projectile.check_collision_with_player(player)
+
+    def draw_blade_rifts(self, win):
+        """Blade rift projectile'larını çiz"""
+        for projectile in self.blade_rift_projectiles:
+            projectile.draw(win)
+
+
+class BladeRiftProjectile:
+    def __init__(self, x, y, target_x, target_y, animations, scale=1.0):
+        self.x = x
+        self.y = y
+        self.target_x = target_x
+        self.target_y = target_y
+        self.speed = constants.BLADE_RIFT_SPEED
+        self.animations = animations
+        self.scale = scale
+
+        # Animasyon kontrolü
+        self.frame_index = 0
+        self.last_update = pygame.time.get_ticks()
+        self.animation_cooldown = 100
+
+        # Hitbox
+        self.width = 60 * scale
+        self.height = 60 * scale
+        self.rect = pygame.Rect(x, y, self.width, self.height)
+
+        # Yaşam süresi
+        self.creation_time = pygame.time.get_ticks()
+        self.lifetime = constants.BLADE_RIFT_LIFETIME
+        self.alive = False
+
+        # Hasar verme
+        self.damage_per_second = constants.BLADE_RIFT_DAMAGE_PER_SECOND
+        self.last_damage_time = 0
+        self.damage_interval = constants.BLADE_RIFT_DAMAGE_INTERVAL
+
+        # Hedef takip etme
+        self.tracking = True
+
+    def update(self, player):
+        if not self.alive:
+            return
+
+        current_time = pygame.time.get_ticks()
+
+        # Yaşam süresi kontrolü
+        if current_time - self.creation_time > self.lifetime:
+            self.alive = False
+            return
+
+        # Hedefi takip et
+        if self.tracking:
+            # Player'ın mevcut pozisyonunu hedef olarak güncelle
+            dx = player.rect.centerx - self.rect.centerx
+            dy = player.rect.centery - self.rect.centery
+
+            # Mesafeyi normalize et
+            distance = math.hypot(dx, dy)
+            if distance > 0:
+                # Hareket yönünü hesapla
+                move_x = (dx / distance) * self.speed
+                move_y = (dy / distance) * self.speed
+
+                # Pozisyonu güncelle
+                self.x += move_x
+                self.y += move_y
+                self.rect.x = self.x
+                self.rect.y = self.y
+
+        # Animasyon güncelleme
+        if current_time - self.last_update >= self.animation_cooldown:
+            self.frame_index = (self.frame_index + 1) % len(self.animations)
+            self.last_update = current_time
+
+    def check_collision_with_player(self, player):
+        if not self.alive:
+            return False
+
+        if self.rect.colliderect(player.rect):
+            current_time = pygame.time.get_ticks()
+
+            # Hasar verme zamanı geldi mi?
+            if current_time - self.last_damage_time >= self.damage_interval:
+                player.health -= self.damage_per_second
+                self.last_damage_time = current_time
+
+                # Player'ın hurt animasyonunu çal
+                if hasattr(player, 'play_hurt_animation'):
+                    player.play_hurt_animation()
+
+                return True
+        return False
+
+    def draw(self, win):
+        if not self.alive or not self.animations:
+            return
+
+        if self.frame_index < len(self.animations):
+            sprite = self.animations[self.frame_index]
+            win.blit(sprite, (self.x, self.y))
+
+        # Debug için hitbox çiz (isteğe bağlı)
+        # pygame.draw.rect(win, (255, 0, 0), self.rect, 2)

@@ -100,7 +100,7 @@ CHAR_ATTACK_FRAME_DURATION = 50  # ms cinsinden saldırı süresi
 CHAR_ATTACK_DAMAGE    = 20
 CHAR_ATTACK_FRAME     = 3
 CHAR_HEALING_AMOUNT   = 20  # İyileştirme miktarı
-CHAR_HEALING_COOLDOWN = 3000  # İyileştirme bekleme süresi (ms)
+CHAR_HEALING_COOLDOWN = 2000  # İyileştirme bekleme süresi (ms)
 CHAR_HEALING_LIMIT    = 3  # Maksimum iyileştirme sayısı
 
 # Boss sabitleri
@@ -108,7 +108,7 @@ BOSS_FRAME_WIDTH      = 128
 BOSS_FRAME_HEIGHT     = 108
 BOSS_START_X          = get_boss_x()
 BOSS_START_Y          = get_boss_y()
-BOSS_SPEED            = 2.0
+BOSS_SPEED            = 5.0
 BOSS_FOLLOW_DISTANCE  = 800
 BOSS_HEALTH           = 300
 BOSS_SCALE            = 2  # 1.5 kat büyük
@@ -156,3 +156,10 @@ SAKURA_COLORS = [(255, 120, 150), (255, 100, 130), (255, 80, 120), (255, 60, 100
 
 # Dağ silueti renkleri
 MOUNTAIN_COLORS = [(80, 50, 80), (100, 60, 90), (120, 70, 100)]
+
+# Blade Rift Projectile sabitleri
+BLADE_RIFT_SPEED = 10                # Projectile hareket hızı
+BLADE_RIFT_DAMAGE_PER_SECOND = 10    # Saniyede verilen hasar: 20
+BLADE_RIFT_LIFETIME = 5000          # Projectile yaşam süresi (ms)
+BLADE_RIFT_COOLDOWN = 5000          # Boss'un blade rift fırlatma cooldown'u (ms)
+BLADE_RIFT_DAMAGE_INTERVAL = 500   # Hasar verme aralığı (ms)

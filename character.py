@@ -160,6 +160,11 @@ class Character(object):
 
     def play_hurt_animation(self):
         if not self.is_hurt:
+            # Eğer healing animasyonu aktifse
+            if self.is_healing:
+                self.is_healing = False
+                
+
             self.is_hurt = True
             self.hurt_start_time = pygame.time.get_ticks()
             self.frame_index = 0
@@ -251,6 +256,8 @@ class Character(object):
         # E tuşu ile healing
         if keys[pygame.K_e]:
             self.start_healing()
+
+        
 
 
         # Dash cooldown kontrolü
