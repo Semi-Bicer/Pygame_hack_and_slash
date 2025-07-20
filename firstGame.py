@@ -75,7 +75,10 @@ class Projectile:
         self.frameCount = (self.frameCount + 1) % len(self.sprites)
 
 # Menü sistemi                                                                                                      #💥
-menu = Menu(constants.screenWidth, constants.screenHeight)                                                          #💥
+menu = Menu(constants.screenWidth, constants.screenHeight)       
+
+# Menu'ya karakter ve boss referanslarını geç
+menu.set_menu_characters(player, boss)                                                   #💥
 
 # Oyun Değişkenleri
 clock = pygame.time.Clock()

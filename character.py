@@ -246,7 +246,7 @@ class Character(object):
             self.left = False
             self.flip = False
 
-        if keys[pygame.K_LSHIFT]:
+        if keys[pygame.K_LSHIFT] and (self.horizontal or self.vertical):
             self.running = True
             self.vel = constants.CHAR_SPEED * 3
         else:
@@ -465,7 +465,7 @@ class Character(object):
                     self.last_update = pygame.time.get_ticks()
                     self.frame_index = (self.frame_index + 1) % len(self.animation_list[2])
 
-            else:
+            else: # walking
                 if self.left:
                     self.image = self.animation_list[1][self.frame_index]
                     if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
@@ -478,7 +478,7 @@ class Character(object):
                         self.frame_index = (self.frame_index + 1) % len(self.animation_list[1])
         else: # idle animation
             #print("idle")
-            if self.leftIdle:
+            if self.flip:
                 self.image = self.animation_list[0][self.frame_index]
                 if pygame.time.get_ticks() - self.last_update >= animation_cooldown:
                     self.last_update = pygame.time.get_ticks()
@@ -509,8 +509,8 @@ class Character(object):
 
     def update_action(self,new_action):
         if new_action != self.action:
-            self.action = new_action
             self.frame_index = 0
+            self.action = new_action
             self.last_update = pygame.time.get_ticks()
 
     def draw(self, win, font=None):  # font parametresi opsiyonel
