@@ -387,12 +387,15 @@ while run:
     # Karakter öldüğünde death menüsünü göster
     if player.health <= 0:
         game_paused = True
+        menu.getskor(int((300 - boss.health) * 10)) #skoru alıyor
         menu.current_menu = "death"
         menu.selected_item = 0
+
 
     # Boss öldüğünde win menüsünü göster
     if boss.health <= 0 and boss.action == "death" and boss.frame_index >= len(boss.get_animation()) - 1:
         game_paused = True
+        menu.getskor(int(player.health * 10 + (300 - boss.health) * 10))
         menu.current_menu = "win"
         menu.selected_item = 0
 

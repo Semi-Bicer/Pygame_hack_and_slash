@@ -451,7 +451,7 @@ class Boss:
 
         # Sprite'ı çiz - frame boyutları de, self.scaleişmeden
         win.blit(flipped_sprite, (self.x+20 , self.y-35))
-        pygame.draw.rect(win, constants.BLUE, self.rect, 2)
+        #pygame.draw.rect(win, constants.BLUE, self.rect, 2)
 
         draw_health_bar(win, self.x + 55, self.y + 25, self.health, self.maxHealth)
 

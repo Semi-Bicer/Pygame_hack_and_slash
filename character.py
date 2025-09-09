@@ -279,16 +279,32 @@ class Character(object):
             dy = boss.rect.centery - self.rect.centery
             dist = math.hypot(dx, dy)
             print(dist)
-            if dist < 100:
-                dx, dy = 1, 0
-                if boss.flip == False: # Boss sağa bakıyorsa
-                    self.x = (boss.rect.x - self.width) - 300
+            if self.flip != boss.flip:
+                if dist < 200:
+                    dx, dy = 1, 0
+                    if boss.flip == False: # Boss sağa bakıyorsa
+                        self.x = (boss.rect.x - self.width) - 100
+                    else:
+                        self.x = (boss.rect.x + boss.rect.width) + 100
                 else:
-                    self.x = (boss.rect.x + boss.rect.width) + 300
+                    if self.flip == False:
+                        self.x += 200
+                    else:
+                        self.x -= 200
+                    if self.vertical > 0:
+                        self.y += 200
+                    elif self.vertical < 0:
+                        self.y -= 200
             else:
-                dx, dy = dx/dist, dy/dist
-                self.x += dx * self.dashVel
-                self.y += dy * self.dashVel
+                if self.flip == False:
+                    self.x += 200
+                else:
+                    self.x -= 200
+                if self.vertical > 0:
+                    self.y += 200
+                elif self.vertical < 0:
+                    self.y -= 200
+
 
 
             # Dash süresi kontrolü (dash_delay kadar sürer)
@@ -523,7 +539,7 @@ class Character(object):
             self.last_update = pygame.time.get_ticks()
 
     def draw(self, win, font=None):  # font parametresi opsiyonel
-        pygame.draw.rect(win, constants.RED, self.rect, 1)
+#        pygame.draw.rect(win, constants.RED, self.rect, 1)
         flipped_image = pygame.transform.flip(self.image, self.flip, False)
         if(self.char_type == 0):
             win.blit(flipped_image, (self.rect.x - constants.scale *constants.OFFSET_X*constants.ORAN_W[self.key], self.rect.y - constants.scale *constants.OFFSET_Y*constants.ORAN_H[self.key]))

@@ -98,6 +98,9 @@ class Menu:
         self.font_medium = pygame.font.Font(font_path, 48)
         self.font_small = pygame.font.Font(font_path, 24)
 
+        #Skor Değişkeni
+        self.skor = 0
+
         # Renk ayarları
         self.title_color = (255, 255, 255)  # Beyaz başlık rengi
         self.text_color = (200, 200, 200)   # Gri metin rengi
@@ -138,6 +141,8 @@ class Menu:
         self.dragging_sfx = False
         self.dragging_music = False
 
+    def getskor(self, skor):
+        self.skor = skor
     def set_menu_characters(self, character, boss):
         """Ana menü için karakter ve boss referanslarını ayarla"""
         self.menu_character = character
@@ -516,7 +521,8 @@ class Menu:
         # Başlık
         title_text = self.font_large.render("GAME OVER", True, (255, 0, 0))  # Kırmızı renk
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
-
+        skor = self.font_large.render("SKOR: "+str(self.skor), True, (200, 200, 0))
+        win.blit(skor, ((self.screen_width - skor.get_width()) // 2, 150 + skor.get_height()))
         # Ölüm menüsü butonlarını oluştur (eğer henüz oluşturulmadıysa)
         death_menu_items = ["TRY AGAIN", "QUIT"]
 
@@ -569,6 +575,8 @@ class Menu:
         # Başlık
         title_text = self.font_large.render("YOU'VE DEFEATED THE ONI", True, (0, 255, 0))  # Yeşil renk
         win.blit(title_text, (self.screen_width // 2 - title_text.get_width() // 2, 100))
+        skor = self.font_large.render("SKOR: "+str(self.skor), True, (200, 200, 0))
+        win.blit(skor, ((self.screen_width - skor.get_width()) // 2, 150 + skor.get_height()))
 
         # Zafer menüsü butonlarını oluştur (eğer henüz oluşturulmadıysa)
         win_menu_items = ["TRY AGAIN", "QUIT"]
