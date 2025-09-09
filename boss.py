@@ -65,7 +65,7 @@ class Boss:
         self.phase_transition = False
 
         # Boss'un karaktere yaklaşabilece, self.scalei minimum mesafe - daha yakına gelmez
-        self.min_follow_distance = 50  # Sabit 50 piksel mesafe
+        self.min_follow_distance = 100  # Sabit 50 piksel mesafe
         self.follow_distance = constants.BOSS_FOLLOW_DISTANCE
 
         self.phase2_speed_multiplier = 1.8
@@ -168,7 +168,7 @@ class Boss:
             return
 
         # Yatay mesafeyi hesapla - player'in sol kenarı ile boss'un sa, self.scale kenarı arasındaki mesafe
-        dx = player.rect.left - self.rect.right
+        dx = player.rect.centerx - self.rect.centerx
 
         # Dikey mesafeyi hesapla - player'in tabanı ile boss'un tabanı arasındaki mesafe
         # Tabanları hizalamak için
@@ -192,10 +192,7 @@ class Boss:
 
     def update(self, player):
         now = pygame.time.get_ticks()
-        # Hitbox'u karakterin gövdesine hizala
-        self.rect.x = self.x + self.original_width   // 2
-        self.rect.y = self.y + self.original_height // 3  # Biraz daha yukarıda olsun
-
+        
         self.key = Menu.current_resolution_index
         if self.key != self.old_key:
             self.reload()
@@ -203,7 +200,7 @@ class Boss:
 
 
         # Saldırı hitbox'ını güncelle - self.rect'in bitişinden itibaren
-        if not self.flip:  # Sa, self.scalea bakma durumu
+        if not self.flip:  # Sağa bakma durumu
             self.attack_rect.x = self.rect.right  # self.rect'in sa, self.scale kenarından başla
             self.attack_rect.y = self.rect.centery - self.attack_height // 2  # Dikey olarak ortala
         else:  # Sola bakma durumu
@@ -243,11 +240,13 @@ class Boss:
             if now - self.dash_start_time < self.dash_duration:
                 self.x += self.dash_direction[0] * self.dash_speed
                 self.y += self.dash_direction[1] * self.dash_speed
-                self.x = max(0, min(self.x, constants.screenWidth - self.original_width))
-                self.y = max(0, min(self.y, constants.screenHeight - self.original_height))
+                self.x = max(0, min(self.x, constants.screenWidth - (self.rect.width)))
+                self.y = max(0, min(self.y, constants.screenHeight - (self.rect.height)))
             else:
                 self.is_dashing = False
                 self.action = "idle"
+                self.x = max(0, min(self.x, constants.screenWidth - (self.rect.width)))
+                self.y = max(0, min(self.y, constants.screenHeight - (self.rect.height)))
             return
 
         if self.action.startswith("attack") or self.action == "jump_attack":
@@ -318,6 +317,30 @@ class Boss:
                         self.y += speed
                     else:
                         self.y -= speed
+                # Boss'u ekran sınırları içinde tut
+                # Sprite'ın gerçek render pozisyonunu dikkate al
+                # X koordinatı için kontrol
+                sprite_right = self.x + 20 + self.original_width * self.scale
+                sprite_left = self.x + 20
+                
+                if sprite_right > constants.screenWidth:
+                    self.x = constants.screenWidth - (self.original_width * self.scale) - 20
+                elif sprite_left < 0:
+                    self.x = -20
+                    
+                # Y koordinatı için kontrol
+                sprite_bottom = self.y - 35 + self.original_height * self.scale
+                sprite_top = self.y - 35
+                
+                if sprite_bottom > constants.screenHeight:
+                    self.y = constants.screenHeight - (self.original_height * self.scale) + 35
+                elif sprite_top < 0:
+                    self.y = 35
+
+                # Hitbox'u karakterin gövdesine hizala
+                self.rect.x = self.x + self.original_width   // 2
+                self.rect.y = self.y + self.original_height // 3  # Biraz daha yukarıda olsun
+
 
                 should_move = True
             elif now - self.last_dash_time > self.dash_cooldown:

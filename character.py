@@ -4,6 +4,7 @@ import math
 import constants
 from functions import *
 from menu import Menu
+from boss import Boss
 
 class Character(object):
     @staticmethod
@@ -219,7 +220,7 @@ class Character(object):
             print("Warning: shuriken sprite is not available.")
             return False
 
-    def move(self, keys, clicks):
+    def move(self, keys, clicks, boss):
         self.walking = False
 
         # Parry sırasında hareket etmeyi engelle
@@ -270,18 +271,26 @@ class Character(object):
             self.isDashing = True
             self.can_dash = False
             self.last_dash_time = current_time # Cooldown için kullanılıyor
-            self.dash_start_time = current_time # Dash süresi için kullanılıyor
+            #self.dash_start_time = current_time # Dash süresi için kullanılıyor
 
         # Apply dash if active
         if self.isDashing:
-            if keys[pygame.K_a]:
-                self.x -= self.dashVel
-            if keys[pygame.K_d]:
-                self.x += self.dashVel
-            if keys[pygame.K_w]:
-                self.y -= self.dashVel
-            if keys[pygame.K_s]:
-                self.y += self.dashVel
+            dx = boss.rect.centerx - self.rect.centerx
+            dy = boss.rect.centery - self.rect.centery
+            dist = math.hypot(dx, dy)
+            print(dist)
+            if dist < 100:
+                dx, dy = 1, 0
+                if boss.flip == False: # Boss sağa bakıyorsa
+                    self.x = (boss.rect.x - self.width) - 300
+                else:
+                    self.x = (boss.rect.x + boss.rect.width) + 300
+            else:
+                dx, dy = dx/dist, dy/dist
+                self.x += dx * self.dashVel
+                self.y += dy * self.dashVel
+
+
             # Dash süresi kontrolü (dash_delay kadar sürer)
             if current_time - self.dash_start_time > constants.CHAR_DASH_DELAY:
                 self.isDashing = False

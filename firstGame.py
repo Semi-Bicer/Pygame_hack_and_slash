@@ -142,6 +142,8 @@ def redrawGameWindow():
     # Parry kontrolü
     if boss.check_parry(player):
         # Başarılı parry durumunda hasar verilmez
+        for _ in range(20):
+            impact_frame(win, alpha=100)
         pass
     elif (boss.action.startswith("attack") or boss.action == "jump_attack"):
         # debug için
@@ -481,7 +483,7 @@ while run:
     keys = pygame.key.get_pressed()
     clicks = pygame.mouse.get_pressed()
     if not player.is_healing:
-        player.move(keys, clicks)
+        player.move(keys, clicks, boss)
 
     # Intro sırasında boss hareket etmez
     if not intro_active:
