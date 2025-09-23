@@ -249,7 +249,7 @@ class Character(object):
 
         if keys[pygame.K_LSHIFT] and (self.horizontal or self.vertical):
             self.running = True
-            self.vel = constants.CHAR_SPEED * 3
+            self.vel = constants.CHAR_DASH_SPEED
         else:
             self.running = False
             self.vel = constants.CHAR_SPEED
